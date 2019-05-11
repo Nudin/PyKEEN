@@ -27,6 +27,30 @@ def _split_list_in_batches(input_list, batch_size):
     return [input_list[i:i + batch_size] for i in range(0, len(input_list), batch_size)]
 
 
+def create_neg_samples(pos_batch: np.ndarray, all_entities: np.ndarray) -> np.ndarray:
+    num_entities = all_entities.shape[0]
+    batch_subjs = pos_batch[:, 0:1]
+    batch_relations = pos_batch[:, 1:2]
+    batch_objs = pos_batch[:, 2:3]
+
+    num_subj_corrupt = len(pos_batch) // 2
+    num_obj_corrupt = len(pos_batch) - num_subj_corrupt
+
+    corrupted_subj_indices = np.random.choice(np.arange(0, num_entities), size=num_subj_corrupt)
+    corrupted_subjects = np.reshape(all_entities[corrupted_subj_indices], newshape=(-1, 1))
+    subject_based_corrupted_triples = np.concatenate(
+        [corrupted_subjects, batch_relations[:num_subj_corrupt], batch_objs[:num_subj_corrupt]], axis=1)
+
+    corrupted_obj_indices = np.random.choice(np.arange(0, num_entities), size=num_obj_corrupt)
+    corrupted_objects = np.reshape(all_entities[corrupted_obj_indices], newshape=(-1, 1))
+
+    object_based_corrupted_triples = np.concatenate(
+        [batch_subjs[num_subj_corrupt:], batch_relations[num_subj_corrupt:], corrupted_objects], axis=1)
+
+    neg_batch = np.concatenate([subject_based_corrupted_triples, object_based_corrupted_triples], axis=0)
+    return neg_batch
+
+
 def train_kge_model(
         kge_model: Module,
         all_entities,
@@ -88,7 +112,6 @@ def _train_basic_model(
 
     loss_per_epoch = []
     num_pos_triples = pos_triples.shape[0]
-    num_entities = all_entities.shape[0]
 
     start_training = timeit.default_timer()
 
@@ -105,27 +128,8 @@ def _train_basic_model(
 
         for i, pos_batch in enumerate(pos_batches):
             current_batch_size = len(pos_batch)
-            batch_subjs = pos_batch[:, 0:1]
-            batch_relations = pos_batch[:, 1:2]
-            batch_objs = pos_batch[:, 2:3]
-
-            num_subj_corrupt = len(pos_batch) // 2
-            num_obj_corrupt = len(pos_batch) - num_subj_corrupt
+            neg_batch = create_neg_samples(pos_batch, all_entities)
             pos_batch = torch.tensor(pos_batch, dtype=torch.long, device=device)
-
-            corrupted_subj_indices = np.random.choice(np.arange(0, num_entities), size=num_subj_corrupt)
-            corrupted_subjects = np.reshape(all_entities[corrupted_subj_indices], newshape=(-1, 1))
-            subject_based_corrupted_triples = np.concatenate(
-                [corrupted_subjects, batch_relations[:num_subj_corrupt], batch_objs[:num_subj_corrupt]], axis=1)
-
-            corrupted_obj_indices = np.random.choice(np.arange(0, num_entities), size=num_obj_corrupt)
-            corrupted_objects = np.reshape(all_entities[corrupted_obj_indices], newshape=(-1, 1))
-
-            object_based_corrupted_triples = np.concatenate(
-                [batch_subjs[num_subj_corrupt:], batch_relations[num_subj_corrupt:], corrupted_objects], axis=1)
-
-            neg_batch = np.concatenate([subject_based_corrupted_triples, object_based_corrupted_triples], axis=0)
-
             neg_batch = torch.tensor(neg_batch, dtype=torch.long, device=device)
 
             # Recall that torch *accumulates* gradients. Before passing in a
@@ -193,27 +197,8 @@ def _train_conv_e_model(
             # TODO: Remove original subject and object from entity set
             pos_batch = pos_batches[i]
             current_batch_size = len(pos_batch)
-            batch_subjs = pos_batch[:, 0:1]
-            batch_relations = pos_batch[:, 1:2]
-            batch_objs = pos_batch[:, 2:3]
-
-            num_subj_corrupt = len(pos_batch) // 2
-            num_obj_corrupt = len(pos_batch) - num_subj_corrupt
+            neg_batch = create_neg_samples(pos_batch, all_entities)
             pos_batch = torch.tensor(pos_batch, dtype=torch.long, device=device)
-
-            corrupted_subj_indices = np.random.choice(np.arange(0, num_entities), size=num_subj_corrupt)
-            corrupted_subjects = np.reshape(all_entities[corrupted_subj_indices], newshape=(-1, 1))
-            subject_based_corrupted_triples = np.concatenate(
-                [corrupted_subjects, batch_relations[:num_subj_corrupt], batch_objs[:num_subj_corrupt]], axis=1)
-
-            corrupted_obj_indices = np.random.choice(np.arange(0, num_entities), size=num_obj_corrupt)
-            corrupted_objects = np.reshape(all_entities[corrupted_obj_indices], newshape=(-1, 1))
-
-            object_based_corrupted_triples = np.concatenate(
-                [batch_subjs[num_subj_corrupt:], batch_relations[num_subj_corrupt:], corrupted_objects], axis=1)
-
-            neg_batch = np.concatenate([subject_based_corrupted_triples, object_based_corrupted_triples], axis=0)
-
             neg_batch = torch.tensor(neg_batch, dtype=torch.long, device=device)
 
             batch = np.concatenate([pos_batch, neg_batch], axis=0)
