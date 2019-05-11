@@ -108,9 +108,11 @@ def _train_basic_model(
     kge_model = kge_model.to(device)
 
     optimizer = optim.SGD(kge_model.parameters(), lr=learning_rate)
+
+    loss_per_epoch: List[float] = []
+
     log.debug(f'****running model on {device}****')
 
-    loss_per_epoch = []
     num_pos_triples = pos_triples.shape[0]
 
     start_training = timeit.default_timer()
@@ -146,7 +148,7 @@ def _train_basic_model(
         loss_per_epoch.append(current_epoch_loss / len(pos_triples))
 
     stop_training = timeit.default_timer()
-    log.debug("training took %.2fs seconds", stop_training - start_training)
+    log.info("Training took %s seconds \n" % (str(round(stop_training - start_training))))
 
     return kge_model, loss_per_epoch
 
@@ -171,10 +173,9 @@ def _train_conv_e_model(
 
     loss_per_epoch: List[float] = []
 
-    log.info('****Run Model On %s****' % str(device).upper())
+    log.debug(f'****running model on {device}****')
 
     num_pos_triples = pos_triples.shape[0]
-    num_entities = all_entities.shape[0]
 
     start_training = timeit.default_timer()
 
@@ -182,7 +183,7 @@ def _train_conv_e_model(
     if tqdm_kwargs:
         _tqdm_kwargs.update(tqdm_kwargs)
 
-    for epoch in trange(num_epochs, **_tqdm_kwargs):
+    for _ in trange(num_epochs, **_tqdm_kwargs):
         indices = np.arange(num_pos_triples)
         np.random.shuffle(indices)
         pos_triples = pos_triples[indices]
@@ -193,9 +194,8 @@ def _train_conv_e_model(
         pos_batches = _split_list_in_batches(input_list=pos_triples, batch_size=num_positives)
         current_epoch_loss = 0.
 
-        for i in range(len(pos_batches)):
+        for i, pos_batch in enumerate(pos_batches):
             # TODO: Remove original subject and object from entity set
-            pos_batch = pos_batches[i]
             current_batch_size = len(pos_batch)
             neg_batch = create_neg_samples(pos_batch, all_entities)
             pos_batch = torch.tensor(pos_batch, dtype=torch.long, device=device)
@@ -212,8 +212,7 @@ def _train_conv_e_model(
             labels = torch.tensor(labels, dtype=torch.float, device=device)
 
             # Recall that torch *accumulates* gradients. Before passing in a
-            # new instance, you need to zero out the gradients from the old
-            # instance
+            # new instance, you need to zero out the gradients from the old instance
             optimizer.zero_grad()
             loss = kge_model(batch, labels)
             current_epoch_loss += (loss.item() * current_batch_size)
