@@ -8,6 +8,7 @@ from typing import Dict, Optional
 import torch
 import torch.autograd
 from torch import nn
+from torch.nn.init import xavier_normal_
 
 from pykeen.constants import RELATION_EMBEDDING_DIM, SCORING_FUNCTION_NORM, TRANS_D_NAME
 from pykeen.kge_models.base import BaseModule, slice_triples
@@ -57,7 +58,14 @@ class TransD(BaseModule):
         self.relation_embeddings = nn.Embedding(self.num_relations, self.relation_embedding_dim, max_norm=1)
         self.entity_projections = nn.Embedding(self.num_entities, self.embedding_dim)
         self.relation_projections = nn.Embedding(self.num_relations, self.relation_embedding_dim)
-        # FIXME @mehdi what about initialization?
+
+        self._initialize()
+
+    def _initialize(self):
+        xavier_normal_(self.entity_embeddings.weight.data)
+        xavier_normal_(self.relation_embeddings.weight.data)
+        xavier_normal_(self.entity_projections.weight.data)
+        xavier_normal_(self.relation_projections.weight.data)
 
     def predict(self, triples):
         # Check if the model has been fitted yet.
