@@ -8,13 +8,19 @@ from torch.nn import Module
 
 from pykeen.constants import KG_EMBEDDING_MODEL_NAME
 from pykeen.kge_models import (
-    ConvE, DistMult, ERMLP, RESCAL, StructuredEmbedding, TransD, TransE, TransH, TransR, UnstructuredModel,
+    ConvE,
+    DistMult,
+    ERMLP,
+    RESCAL,
+    StructuredEmbedding,
+    TransD,
+    TransE,
+    TransH,
+    TransR,
+    UnstructuredModel,
 )
 
-__all__ = [
-    'KGE_MODELS',
-    'get_kge_model',
-]
+__all__ = ["KGE_MODELS", "get_kge_model"]
 
 #: A mapping from KGE model names to KGE model classes
 KGE_MODELS = {
@@ -37,6 +43,6 @@ def get_kge_model(config: Dict) -> Module:
     kge_model_cls = KGE_MODELS.get(kge_model_name)
 
     if kge_model_cls is None:
-        raise ValueError(f'Invalid KGE model name: {kge_model_name}')
+        raise ValueError(f"Invalid KGE model name: {kge_model_name}")
 
     return kge_model_cls(**config)

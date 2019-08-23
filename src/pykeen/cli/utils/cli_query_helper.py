@@ -8,41 +8,49 @@ import click
 from prompt_toolkit import prompt
 
 from pykeen.cli.utils.constants import (
-    ID_TO_KG_MODEL_MAPPING, ID_TO_OPTIMIZER_MAPPING, KG_MODEL_TO_ID_MAPPING, OPTIMIZER_TO_ID_MAPPING,
+    ID_TO_KG_MODEL_MAPPING,
+    ID_TO_OPTIMIZER_MAPPING,
+    KG_MODEL_TO_ID_MAPPING,
+    OPTIMIZER_TO_ID_MAPPING,
 )
-from pykeen.constants import CPU, GPU, HPO_MODE, IMPORTERS, PYKEEN, TRAINING_MODE, TRANS_E_NAME
+from pykeen.constants import (
+    CPU,
+    GPU,
+    HPO_MODE,
+    IMPORTERS,
+    PYKEEN,
+    TRAINING_MODE,
+    TRANS_E_NAME,
+)
 
 
 def _is_correct_format(path: str):
     return (
-        any(
-            path.startswith(prefix)
-            for prefix in IMPORTERS
-        )
-        or path.endswith('.tsv')
-        or path.endswith('.nt')
+        any(path.startswith(prefix) for prefix in IMPORTERS)
+        or path.endswith(".tsv")
+        or path.endswith(".nt")
     )
 
 
 def get_input_path(prompt_msg: str) -> str:
     while True:
-        user_input = prompt(prompt_msg, ).strip('"').strip("'")
+        user_input = prompt(prompt_msg).strip('"').strip("'")
 
         if _is_correct_format(path=user_input):
             return user_input
 
         click.secho(
-            'Invalid data source, following data sources are supported:\nA string path to a .tsv file containing 3 '
-            'columns corresponding to subject, predicate, and object.\nA string path to a .nt RDF file serialized in '
+            "Invalid data source, following data sources are supported:\nA string path to a .tsv file containing 3 "
+            "columns corresponding to subject, predicate, and object.\nA string path to a .nt RDF file serialized in "
             'N-Triples format.\nA string NDEx network UUID prefixed by "ndex:" like in '
-            'ndex:f93f402c-86d4-11e7-a10d-0ac135e8bacf\n',
-            fg='red',
+            "ndex:f93f402c-86d4-11e7-a10d-0ac135e8bacf\n",
+            fg="red",
         )
 
 
 def select_keen_execution_mode(lib_name=PYKEEN):
     r = click.confirm(
-        f'Do you have hyper-parameters? If not, {lib_name} will be configured for hyper-parameter search.',
+        f"Do you have hyper-parameters? If not, {lib_name} will be configured for hyper-parameter search.",
         default=False,
     )
     return TRAINING_MODE if r else HPO_MODE
@@ -51,22 +59,21 @@ def select_keen_execution_mode(lib_name=PYKEEN):
 def select_embedding_model() -> str:
     number_width = 1 + round(len(KG_MODEL_TO_ID_MAPPING) / 10)
     for model, model_id in KG_MODEL_TO_ID_MAPPING.items():
-        click.echo(f'{model_id: >{number_width}}. {model}')
+        click.echo(f"{model_id: >{number_width}}. {model}")
     click.echo()
 
     available_models, ids = zip(*KG_MODEL_TO_ID_MAPPING.items())
 
     while True:
         user_input = click.prompt(
-            'Please select the embedding model you want to train',
-            default=TRANS_E_NAME,
+            "Please select the embedding model you want to train", default=TRANS_E_NAME
         )
 
         if user_input not in ids and user_input not in available_models:
             click.secho(
                 f"Invalid input, please type in a number between 1 and {len(KG_MODEL_TO_ID_MAPPING)} indicating "
                 f"the model id.\nFor example, type 1 to select the model {available_models[0]} and press enter",
-                fg='red',
+                fg="red",
             )
             click.echo()
         elif user_input in available_models:
@@ -113,37 +120,43 @@ def select_zero_one_float_value(print_msg, prompt_msg, error_msg):
 
 def select_ratio_for_test_set():
     while True:
-        ratio = click.prompt('> Please select the ratio', default=0.2, type=float)
+        ratio = click.prompt("> Please select the ratio", default=0.2, type=float)
 
         try:
-            if 0. < ratio < 1.:
+            if 0.0 < ratio < 1.0:
                 return ratio
         except ValueError:
             pass
 
-        click.echo('Invalid input, the ratio should be 0.< ratio < 1. (e.g. 0.2).\nPlease try again.')
+        click.echo(
+            "Invalid input, the ratio should be 0.< ratio < 1. (e.g. 0.2).\nPlease try again."
+        )
 
 
 def select_preferred_device() -> str:
-    click.secho("Current Step: Please specify the preferred device (GPU or CPU)", fg='blue')
-    c = click.confirm('Do you want to try using the GPU? ', default=False)
+    click.secho(
+        "Current Step: Please specify the preferred device (GPU or CPU)", fg="blue"
+    )
+    c = click.confirm("Do you want to try using the GPU? ", default=False)
     return GPU if c else CPU
 
 
 def ask_for_filtering_of_negatives():
-    return click.confirm('Do you want to filter out negative triples during evaluation of your model?')
+    return click.confirm(
+        "Do you want to filter out negative triples during evaluation of your model?"
+    )
 
 
 def query_output_directory() -> str:
-    default_output_directory = os.environ.get('PYKEEN_DEFAULT_OUTPUT_DIRECTORY')
+    default_output_directory = os.environ.get("PYKEEN_DEFAULT_OUTPUT_DIRECTORY")
     if default_output_directory is not None:
         os.makedirs(default_output_directory, exist_ok=True)
         return default_output_directory
 
-    click.echo('Please provide the path to your output directory.\n\n')
+    click.echo("Please provide the path to your output directory.\n\n")
 
     while True:
-        user_input = os.path.expanduser(click.prompt('Path to output directory'))
+        user_input = os.path.expanduser(click.prompt("Path to output directory"))
 
         if os.path.exists(os.path.dirname(user_input)):
             return user_input
@@ -151,33 +164,44 @@ def query_output_directory() -> str:
         try:
             os.makedirs(user_input, exist_ok=True)
         except FileExistsError:
-            click.echo('Invalid input, please make sure that the path to the directory exists.\n'
-                       'Please try again.')
+            click.echo(
+                "Invalid input, please make sure that the path to the directory exists.\n"
+                "Please try again."
+            )
         else:
             return user_input
 
 
 def query_height_and_width_for_conv_e(embedding_dim):
-    click.echo("Note: Height and width must be positive positive integers.\n"
-               "Besides, height * width must equal to  embedding dimension \'%d\'" % embedding_dim)
+    click.echo(
+        "Note: Height and width must be positive positive integers.\n"
+        "Besides, height * width must equal to  embedding dimension '%d'"
+        % embedding_dim
+    )
     click.echo()
 
     while True:
-        height = click.prompt('> Height')
+        height = click.prompt("> Height")
 
         if not height.isnumeric():
-            click.echo("Invalid input, please make sure that height is a positive integer.")
+            click.echo(
+                "Invalid input, please make sure that height is a positive integer."
+            )
             continue
 
-        width = click.prompt('> Width')
+        width = click.prompt("> Width")
 
         if not width.isnumeric():
-            click.echo("Invalid input, please make sure that height is a positive integer.")
+            click.echo(
+                "Invalid input, please make sure that height is a positive integer."
+            )
             continue
 
         if not (int(height) * int(width) == embedding_dim):
-            click.echo("Invalid input, height * width are not equal to \'%d\' (your specified embedding dimension).\n"
-                       "Please try again, and fulfill the constraint)" % embedding_dim)
+            click.echo(
+                "Invalid input, height * width are not equal to '%d' (your specified embedding dimension).\n"
+                "Please try again, and fulfill the constraint)" % embedding_dim
+            )
         else:
             return int(height), int(width)
 
@@ -201,7 +225,7 @@ def select_float_values(print_msg, prompt_msg, error_msg):
 
     while not is_valid_input:
         user_input = prompt(prompt_msg)
-        user_input = user_input.split(',')
+        user_input = user_input.split(",")
         is_valid_input = True
 
         for float_value in user_input:
@@ -223,7 +247,7 @@ def select_zero_one_range_float_values(print_msg, prompt_msg, error_msg):
 
     while not is_valid_input:
         user_input = prompt(prompt_msg)
-        user_input = user_input.split(',')
+        user_input = user_input.split(",")
         is_valid_input = True
 
         for float_value in user_input:
@@ -234,7 +258,7 @@ def select_zero_one_range_float_values(print_msg, prompt_msg, error_msg):
                 is_valid_input = False
                 break
 
-            if 0. <= float_value <= 1.:
+            if 0.0 <= float_value <= 1.0:
                 print("hey")
                 float_values.append(float_value)
             else:
@@ -252,7 +276,7 @@ def select_positive_integer_values(print_msg, prompt_msg, error_msg):
 
     while not is_valid_input:
         user_input = prompt(prompt_msg)
-        user_input = [v.strip() for v in user_input.split(',')]
+        user_input = [v.strip() for v in user_input.split(",")]
         is_valid_input = True
 
         for integer in user_input:
@@ -267,7 +291,7 @@ def select_positive_integer_values(print_msg, prompt_msg, error_msg):
 
 
 def select_optimizer():
-    click.echo('Please select the optimizer you want to train your model with:')
+    click.echo("Please select the optimizer you want to train your model with:")
     for optimizer, id in OPTIMIZER_TO_ID_MAPPING.items():
         click.echo("%s: %s" % (optimizer, id))
 
@@ -275,13 +299,14 @@ def select_optimizer():
     available_optimizers = list(OPTIMIZER_TO_ID_MAPPING.keys())
 
     while True:
-        user_input = prompt('> Please select one of the options: ')
+        user_input = prompt("> Please select one of the options: ")
 
         if user_input not in ids:
             click.echo(
                 "Invalid input, please type in a number between %s and %s indicating the optimizer id.\n"
-                "For example type %s to select the model %s and press enter" % (
-                    available_optimizers[0], ids[0], ids[0], available_optimizers[0]))
+                "For example type %s to select the model %s and press enter"
+                % (available_optimizers[0], ids[0], ids[0], available_optimizers[0])
+            )
             click.echo()
         else:
             return ID_TO_OPTIMIZER_MAPPING[user_input]
@@ -294,15 +319,21 @@ def select_heights_and_widths(embedding_dimensions):
     for embedding_dim in embedding_dimensions:
         is_valid_input = False
         while not is_valid_input:
-            click.echo("Specify height for specified embedding dimension %d ." % embedding_dim)
-            height = click.prompt('> Height', type=int)
+            click.echo(
+                "Specify height for specified embedding dimension %d ." % embedding_dim
+            )
+            height = click.prompt("> Height", type=int)
 
-            click.echo("Specify width for specified embedding dimension %d ." % embedding_dim)
-            width = click.prompt('> Width', type=int)
+            click.echo(
+                "Specify width for specified embedding dimension %d ." % embedding_dim
+            )
+            width = click.prompt("> Width", type=int)
 
             if not (0 < height and 0 < width and height * width != embedding_dim):
-                click.echo("Invalid input - height and width must be positive integers and height * width must"
-                           " equal the specified embedding dimension of \'%d\'." % embedding_dim)
+                click.echo(
+                    "Invalid input - height and width must be positive integers and height * width must"
+                    " equal the specified embedding dimension of '%d'." % embedding_dim
+                )
             else:
                 heights.append(height)
                 widths.append(width)

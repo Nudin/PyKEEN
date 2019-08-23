@@ -3,12 +3,17 @@
 """Test training and HPO mode for TransR."""
 
 import pykeen.constants as pkc
-from tests.constants import BaseTestTrainingMode, set_training_mode_specific_parameters, \
-    set_hpo_mode_specific_parameters, set_evaluation_specific_parameters
+from tests.constants import (
+    BaseTestTrainingMode,
+    set_training_mode_specific_parameters,
+    set_hpo_mode_specific_parameters,
+    set_evaluation_specific_parameters,
+)
 
 
 class TestTrainingModeForTransR(BaseTestTrainingMode):
     """Test that TransR can be trained and evaluated correctly in training mode."""
+
     config = BaseTestTrainingMode.config
     config = set_training_mode_specific_parameters(config=config)
     config[pkc.KG_EMBEDDING_MODEL_NAME] = pkc.TRANS_R_NAME
@@ -30,8 +35,10 @@ class TestTrainingModeForTransR(BaseTestTrainingMode):
         self.check_training_followed_by_evaluation(results=results)
         self.assertIsNotNone(results.results[pkc.FINAL_CONFIGURATION])
 
+
 class TestHPOModeForTransR(BaseTestTrainingMode):
     """Test that TransR can be trained and evaluated correctly in training mode."""
+
     config = BaseTestTrainingMode.config
     config = set_training_mode_specific_parameters(config=config)
     config[pkc.KG_EMBEDDING_MODEL_NAME] = pkc.TRANS_R_NAME

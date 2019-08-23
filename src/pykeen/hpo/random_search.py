@@ -14,11 +14,11 @@ from typing import Any, Dict, List, Optional
 import pykeen.constants as pkc
 from pykeen.hpo.utils import HPOptimizer, HPOptimizerResult
 from pykeen.kge_models import get_kge_model
-from pykeen.utilities.evaluation_utils.metrics_computations import compute_metric_results
+from pykeen.utilities.evaluation_utils.metrics_computations import (
+    compute_metric_results,
+)
 
-__all__ = [
-    'RandomSearch',
-]
+__all__ = ["RandomSearch"]
 
 
 class RandomSearch(HPOptimizer):
@@ -31,11 +31,21 @@ class RandomSearch(HPOptimizer):
         hyperparams_dict = hyperparams_dict.copy()
         embedding_dimensions = hyperparams_dict[pkc.EMBEDDING_DIM]
         sampled_index = random.choice(range(len(embedding_dimensions)))
-        kg_model_config[pkc.EMBEDDING_DIM] = hyperparams_dict[pkc.EMBEDDING_DIM][sampled_index]
-        kg_model_config[pkc.CONV_E_HEIGHT] = hyperparams_dict[pkc.CONV_E_HEIGHT][sampled_index]
-        kg_model_config[pkc.CONV_E_WIDTH] = hyperparams_dict[pkc.CONV_E_WIDTH][sampled_index]
-        kg_model_config[pkc.CONV_E_KERNEL_HEIGHT] = hyperparams_dict[pkc.CONV_E_KERNEL_HEIGHT][sampled_index]
-        kg_model_config[pkc.CONV_E_KERNEL_WIDTH] = hyperparams_dict[pkc.CONV_E_KERNEL_WIDTH][sampled_index]
+        kg_model_config[pkc.EMBEDDING_DIM] = hyperparams_dict[pkc.EMBEDDING_DIM][
+            sampled_index
+        ]
+        kg_model_config[pkc.CONV_E_HEIGHT] = hyperparams_dict[pkc.CONV_E_HEIGHT][
+            sampled_index
+        ]
+        kg_model_config[pkc.CONV_E_WIDTH] = hyperparams_dict[pkc.CONV_E_WIDTH][
+            sampled_index
+        ]
+        kg_model_config[pkc.CONV_E_KERNEL_HEIGHT] = hyperparams_dict[
+            pkc.CONV_E_KERNEL_HEIGHT
+        ][sampled_index]
+        kg_model_config[pkc.CONV_E_KERNEL_WIDTH] = hyperparams_dict[
+            pkc.CONV_E_KERNEL_WIDTH
+        ][sampled_index]
 
         del hyperparams_dict[pkc.EMBEDDING_DIM]
         del hyperparams_dict[pkc.CONV_E_HEIGHT]
@@ -48,15 +58,15 @@ class RandomSearch(HPOptimizer):
         return kg_model_config
 
     def optimize_hyperparams(
-            self,
-            mapped_train_triples,
-            mapped_test_triples,
-            entity_to_id,
-            rel_to_id,
-            config,
-            device,
-            seed: Optional[int] = None,
-            k_evaluation: int = 10,
+        self,
+        mapped_train_triples,
+        mapped_test_triples,
+        entity_to_id,
+        rel_to_id,
+        config,
+        device,
+        seed: Optional[int] = None,
+        k_evaluation: int = 10,
     ) -> HPOptimizerResult:
         if seed is not None:
             torch.manual_seed(config[pkc.SEED])
@@ -74,15 +84,17 @@ class RandomSearch(HPOptimizer):
 
         sample_fct = (
             self._sample_conv_e_params
-            if config[pkc.KG_EMBEDDING_MODEL_NAME] == pkc.CONV_E_NAME else
-            self._sample_parameter_value
+            if config[pkc.KG_EMBEDDING_MODEL_NAME] == pkc.CONV_E_NAME
+            else self._sample_parameter_value
         )
 
-        for _ in trange(max_iters, desc='HPO Iteration'):
+        for _ in trange(max_iters, desc="HPO Iteration"):
             # Sample hyper-params
             kge_model_config: Dict[str, Any] = sample_fct(config)
             kge_model_config[pkc.SEED]: int = seed
-            kge_model_config[pkc.PREFERRED_DEVICE]: str = pkc.CPU if device == pkc.CPU else pkc.GPU
+            kge_model_config[
+                pkc.PREFERRED_DEVICE
+            ]: str = pkc.CPU if device == pkc.CPU else pkc.GPU
 
             # Configure defined model
             kge_model: Module = get_kge_model(config=kge_model_config)
@@ -142,14 +154,16 @@ class RandomSearch(HPOptimizer):
         )
 
     @classmethod
-    def run(cls,
-            mapped_train_triples: np.ndarray,
-            mapped_test_triples: np.ndarray,
-            entity_to_id: Dict[int, str],
-            rel_to_id: Dict[int, str],
-            config: Dict,
-            device,
-            seed) -> HPOptimizerResult:
+    def run(
+        cls,
+        mapped_train_triples: np.ndarray,
+        mapped_test_triples: np.ndarray,
+        entity_to_id: Dict[int, str],
+        rel_to_id: Dict[int, str],
+        config: Dict,
+        device,
+        seed,
+    ) -> HPOptimizerResult:
         return cls().optimize_hyperparams(
             mapped_train_triples=mapped_train_triples,
             mapped_test_triples=mapped_test_triples,

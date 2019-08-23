@@ -13,17 +13,12 @@ import pandas as pd
 
 from pykeen.constants import KG_EMBEDDING_MODEL_NAME
 
-__all__ = [
-    'get_config_dict',
-    'summarize_results',
-]
+__all__ = ["get_config_dict", "summarize_results"]
 
 
 def get_config_dict(model_name: str) -> Dict:
     """Get configuration dictionary."""
-    return OrderedDict([
-        (KG_EMBEDDING_MODEL_NAME, model_name),
-    ])
+    return OrderedDict([(KG_EMBEDDING_MODEL_NAME, model_name)])
 
 
 def summarize_results(directory: str, output: Union[str, Path, TextIO]) -> None:
@@ -35,14 +30,14 @@ def summarize_results(directory: str, output: Union[str, Path, TextIO]) -> None:
         if not os.path.isdir(subdirectory):
             continue
 
-        configuration_path = os.path.join(subdirectory, 'configuration.json')
+        configuration_path = os.path.join(subdirectory, "configuration.json")
         if not os.path.exists(configuration_path):
             click.echo("missing configuration")
             continue
         with open(configuration_path) as file:
             configuration = json.load(file)
 
-        evaluation_path = os.path.join(subdirectory, 'evaluation_summary.json')
+        evaluation_path = os.path.join(subdirectory, "evaluation_summary.json")
         if not os.path.exists(evaluation_path):
             click.echo("missing evaluation summary")
             continue
@@ -52,4 +47,4 @@ def summarize_results(directory: str, output: Union[str, Path, TextIO]) -> None:
         r.append(dict(**configuration, **evaluation))
 
     df = pd.DataFrame(r)
-    df.to_csv(output, sep='\t')
+    df.to_csv(output, sep="\t")

@@ -5,8 +5,18 @@
 import unittest
 
 from pykeen.constants import *
-from pykeen.kge_models import TransE, TransH, TransR, TransD, DistMult, ERMLP, StructuredEmbedding, UnstructuredModel, \
-    RESCAL, ConvE
+from pykeen.kge_models import (
+    TransE,
+    TransH,
+    TransR,
+    TransD,
+    DistMult,
+    ERMLP,
+    StructuredEmbedding,
+    UnstructuredModel,
+    RESCAL,
+    ConvE,
+)
 
 import torch
 
@@ -236,90 +246,110 @@ class TestScoringFunctions(unittest.TestCase):
     def test_compute_scores_trans_e(self):
         """Test that TransE's socore function computes the scores correct."""
         trans_e = TransE(**TRANS_E_CONFIG)
-        h_embs = torch.tensor([[1.,1.],[2.,2.]],dtype=torch.float)
-        r_embs = torch.tensor([[1., 1.], [2., 2.]],dtype=torch.float)
-        t_embs = torch.tensor([[2., 2.], [4., 4.]],dtype=torch.float)
+        h_embs = torch.tensor([[1.0, 1.0], [2.0, 2.0]], dtype=torch.float)
+        r_embs = torch.tensor([[1.0, 1.0], [2.0, 2.0]], dtype=torch.float)
+        t_embs = torch.tensor([[2.0, 2.0], [4.0, 4.0]], dtype=torch.float)
 
-        scores = trans_e._compute_scores(h_embs,r_embs,t_embs).cpu().numpy().tolist()
+        scores = trans_e._compute_scores(h_embs, r_embs, t_embs).cpu().numpy().tolist()
 
-        self.assertEqual(scores, [0.,0.])
+        self.assertEqual(scores, [0.0, 0.0])
 
     def test_compute_scores_trans_h(self):
         """Test that TransH's socore function computes the scores correct."""
         trans_h = TransH(**TRANS_H_CONFIG)
-        proj_h_embs = torch.tensor([[1.,1.],[1.,1.]],dtype=torch.float)
-        proj_r_embs = torch.tensor([[1., 1.], [2., 2.]],dtype=torch.float)
-        proj_t_embs = torch.tensor([[2., 2.], [4., 4.]],dtype=torch.float)
+        proj_h_embs = torch.tensor([[1.0, 1.0], [1.0, 1.0]], dtype=torch.float)
+        proj_r_embs = torch.tensor([[1.0, 1.0], [2.0, 2.0]], dtype=torch.float)
+        proj_t_embs = torch.tensor([[2.0, 2.0], [4.0, 4.0]], dtype=torch.float)
 
-        scores = trans_h._compute_scores(proj_h_embs,proj_r_embs,proj_t_embs).cpu().numpy().tolist()
+        scores = (
+            trans_h._compute_scores(proj_h_embs, proj_r_embs, proj_t_embs)
+            .cpu()
+            .numpy()
+            .tolist()
+        )
 
-        self.assertEqual(scores, [0.,4.])
+        self.assertEqual(scores, [0.0, 4.0])
 
     def test_compute_scores_trans_r(self):
         """Test that TransR's socore function computes the scores correct."""
         trans_r = TransR(**TRANS_R_CONFIG)
-        proj_h_embs = torch.tensor([[1.,1.],[1.,1.]],dtype=torch.float)
-        proj_r_embs = torch.tensor([[1., 1.], [2., 2.]],dtype=torch.float)
-        proj_t_embs = torch.tensor([[2., 2.], [4., 4.]],dtype=torch.float)
+        proj_h_embs = torch.tensor([[1.0, 1.0], [1.0, 1.0]], dtype=torch.float)
+        proj_r_embs = torch.tensor([[1.0, 1.0], [2.0, 2.0]], dtype=torch.float)
+        proj_t_embs = torch.tensor([[2.0, 2.0], [4.0, 4.0]], dtype=torch.float)
 
-        scores = trans_r._compute_scores(proj_h_embs,proj_r_embs,proj_t_embs).cpu().numpy().tolist()
+        scores = (
+            trans_r._compute_scores(proj_h_embs, proj_r_embs, proj_t_embs)
+            .cpu()
+            .numpy()
+            .tolist()
+        )
 
-        self.assertEqual(scores, [0.,4.])
+        self.assertEqual(scores, [0.0, 4.0])
 
     def test_compute_scores_trans_d(self):
         """Test that TransD's socore function computes the scores correct."""
         trans_d = TransD(**TRANS_D_CONFIG)
-        proj_h_embs = torch.tensor([[1.,1.],[1.,1.]],dtype=torch.float)
-        proj_r_embs = torch.tensor([[1., 1.], [2., 2.]],dtype=torch.float)
-        proj_t_embs = torch.tensor([[2., 2.], [4., 4.]],dtype=torch.float)
+        proj_h_embs = torch.tensor([[1.0, 1.0], [1.0, 1.0]], dtype=torch.float)
+        proj_r_embs = torch.tensor([[1.0, 1.0], [2.0, 2.0]], dtype=torch.float)
+        proj_t_embs = torch.tensor([[2.0, 2.0], [4.0, 4.0]], dtype=torch.float)
 
-        scores = trans_d._compute_scores(proj_h_embs,proj_r_embs,proj_t_embs).cpu().numpy().tolist()
+        scores = (
+            trans_d._compute_scores(proj_h_embs, proj_r_embs, proj_t_embs)
+            .cpu()
+            .numpy()
+            .tolist()
+        )
 
-        self.assertEqual(scores, [0.,4.])
+        self.assertEqual(scores, [0.0, 4.0])
 
     def test_compute_scores_distmult(self):
         """Test that DistMult's socore function computes the scores correct."""
         distmult = DistMult(**DISTMULT_CONFIG)
-        h_embs = torch.tensor([[1.,1.],[1.,1.]],dtype=torch.float)
-        r_embs = torch.tensor([[1., 1.], [2., 2.]],dtype=torch.float)
-        t_embs = torch.tensor([[2., 2.], [4., 4.]],dtype=torch.float)
+        h_embs = torch.tensor([[1.0, 1.0], [1.0, 1.0]], dtype=torch.float)
+        r_embs = torch.tensor([[1.0, 1.0], [2.0, 2.0]], dtype=torch.float)
+        t_embs = torch.tensor([[2.0, 2.0], [4.0, 4.0]], dtype=torch.float)
 
-        scores = distmult._compute_scores(h_embs,r_embs,t_embs).cpu().numpy().tolist()
+        scores = distmult._compute_scores(h_embs, r_embs, t_embs).cpu().numpy().tolist()
 
-        self.assertEqual(scores, [-4.,-16.])
+        self.assertEqual(scores, [-4.0, -16.0])
 
     def test_compute_scores_um(self):
         """Test that DistMult's socore function computes the scores correct."""
         um = UnstructuredModel(**UM_CONFIG)
-        h_embs = torch.tensor([[1.,1.],[1.,1.]],dtype=torch.float)
-        t_embs = torch.tensor([[2., 2.], [4., 4.]],dtype=torch.float)
+        h_embs = torch.tensor([[1.0, 1.0], [1.0, 1.0]], dtype=torch.float)
+        t_embs = torch.tensor([[2.0, 2.0], [4.0, 4.0]], dtype=torch.float)
 
         scores = um._compute_scores(h_embs, t_embs).cpu().numpy().tolist()
 
-        self.assertEqual(scores, [4.,36.])
+        self.assertEqual(scores, [4.0, 36.0])
 
     def test_compute_scores_se(self):
         """Test that SE's socore function computes the scores correct."""
         se = StructuredEmbedding(**SE_CONFIG)
-        proj_h_embs = torch.tensor([[1.,1.],[1.,1.]],dtype=torch.float)
-        proj_t_embs = torch.tensor([[2., 2.], [4., 4.]],dtype=torch.float)
+        proj_h_embs = torch.tensor([[1.0, 1.0], [1.0, 1.0]], dtype=torch.float)
+        proj_t_embs = torch.tensor([[2.0, 2.0], [4.0, 4.0]], dtype=torch.float)
 
-        scores = se._compute_scores(proj_h_embs,proj_t_embs).cpu().numpy().tolist()
+        scores = se._compute_scores(proj_h_embs, proj_t_embs).cpu().numpy().tolist()
 
-        self.assertEqual(scores, [2.,6.])
+        self.assertEqual(scores, [2.0, 6.0])
 
     def test_compute_scores_ermlp(self):
         """Test that SE's score function computes the scores correct."""
         ermlp = ERMLP(**ERMLP_CONFIG)
 
-        h_embs = torch.tensor([[1., 1.], [1., 1.]], dtype=torch.float)
-        r_embs = torch.tensor([[1., 1.], [2., 2.]], dtype=torch.float)
-        t_embs = torch.tensor([[2., 2.], [4., 4.]], dtype=torch.float)
+        h_embs = torch.tensor([[1.0, 1.0], [1.0, 1.0]], dtype=torch.float)
+        r_embs = torch.tensor([[1.0, 1.0], [2.0, 2.0]], dtype=torch.float)
+        t_embs = torch.tensor([[2.0, 2.0], [4.0, 4.0]], dtype=torch.float)
 
-        scores = ermlp._compute_scores(h_embs,r_embs,t_embs).detach().cpu().numpy().tolist()
+        scores = (
+            ermlp._compute_scores(h_embs, r_embs, t_embs)
+            .detach()
+            .cpu()
+            .numpy()
+            .tolist()
+        )
 
-        self.assertEqual(len(scores),2)
-
+        self.assertEqual(len(scores), 2)
 
     def test_um_predict(self):
         """Test UM's predict function."""
@@ -328,8 +358,8 @@ class TestScoringFunctions(unittest.TestCase):
         um.num_relations = UM_CONFIG[NUM_RELATIONS]
         predictions = um.predict(triples=TEST_TRIPLES)
 
-        self.assertEqual(len(predictions),len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),float)
+        self.assertEqual(len(predictions), len(TEST_TRIPLES))
+        self.assertTrue(type(predictions.shape[0]), float)
 
     def test_se_predict(self):
         """Test SE's predict function."""
@@ -338,8 +368,8 @@ class TestScoringFunctions(unittest.TestCase):
         se.num_relations = SE_CONFIG[NUM_RELATIONS]
         predictions = se.predict(triples=TEST_TRIPLES)
 
-        self.assertEqual(len(predictions),len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),float)
+        self.assertEqual(len(predictions), len(TEST_TRIPLES))
+        self.assertTrue(type(predictions.shape[0]), float)
 
     def test_trans_e_predict(self):
         """Test TransE's predict function."""
@@ -348,8 +378,8 @@ class TestScoringFunctions(unittest.TestCase):
         trans_e.num_relations = TRANS_E_CONFIG[NUM_RELATIONS]
         predictions = trans_e.predict(triples=TEST_TRIPLES)
 
-        self.assertEqual(len(predictions),len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),float)
+        self.assertEqual(len(predictions), len(TEST_TRIPLES))
+        self.assertTrue(type(predictions.shape[0]), float)
 
     def test_trans_h_predict(self):
         """Test TransH's predict function."""
@@ -358,8 +388,8 @@ class TestScoringFunctions(unittest.TestCase):
         trans_h.num_relations = TRANS_H_CONFIG[NUM_RELATIONS]
         predictions = trans_h.predict(triples=TEST_TRIPLES)
 
-        self.assertEqual(len(predictions),len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),float)
+        self.assertEqual(len(predictions), len(TEST_TRIPLES))
+        self.assertTrue(type(predictions.shape[0]), float)
 
     def test_trans_r_predict(self):
         """Test TransR's predict function."""
@@ -368,8 +398,8 @@ class TestScoringFunctions(unittest.TestCase):
         trans_r.num_relations = TRANS_R_CONFIG[NUM_RELATIONS]
         predictions = trans_r.predict(triples=TEST_TRIPLES)
 
-        self.assertEqual(len(predictions),len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),float)
+        self.assertEqual(len(predictions), len(TEST_TRIPLES))
+        self.assertTrue(type(predictions.shape[0]), float)
 
     def test_trans_d_predict(self):
         """Test TransD's predict function."""
@@ -378,8 +408,8 @@ class TestScoringFunctions(unittest.TestCase):
         trans_d.num_relations = TRANS_D_CONFIG[NUM_RELATIONS]
         predictions = trans_d.predict(triples=TEST_TRIPLES)
 
-        self.assertEqual(len(predictions),len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),float)
+        self.assertEqual(len(predictions), len(TEST_TRIPLES))
+        self.assertTrue(type(predictions.shape[0]), float)
 
     def test_ermlp_predict(self):
         """Test ERMLP's predict function."""
@@ -388,8 +418,8 @@ class TestScoringFunctions(unittest.TestCase):
         ermlp.num_relations = ERMLP_CONFIG[NUM_RELATIONS]
         predictions = ermlp.predict(triples=TEST_TRIPLES)
 
-        self.assertEqual(len(predictions),len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),float)
+        self.assertEqual(len(predictions), len(TEST_TRIPLES))
+        self.assertTrue(type(predictions.shape[0]), float)
 
     def test_rescal_predict(self):
         """Test RESCAL's predict function."""
@@ -398,8 +428,8 @@ class TestScoringFunctions(unittest.TestCase):
         rescal.num_relations = RESCAL_CONFIG[NUM_RELATIONS]
         predictions = rescal.predict(triples=TEST_TRIPLES)
 
-        self.assertEqual(len(predictions),len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),float)
+        self.assertEqual(len(predictions), len(TEST_TRIPLES))
+        self.assertTrue(type(predictions.shape[0]), float)
 
     def test_conv_e_predict(self):
         """Test ConvE's predict function."""
@@ -409,7 +439,4 @@ class TestScoringFunctions(unittest.TestCase):
         predictions = conv_e.predict(triples=TEST_TRIPLES)
 
         self.assertEqual(len(predictions), len(TEST_TRIPLES))
-        self.assertTrue(type(predictions.shape[0]),int)
-
-
-
+        self.assertTrue(type(predictions.shape[0]), int)

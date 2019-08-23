@@ -11,7 +11,7 @@ from torch import nn
 from pykeen.constants import RESCAL_NAME, SCORING_FUNCTION_NORM
 from pykeen.kge_models.base import BaseModule, slice_triples
 
-__all__ = ['RESCAL']
+__all__ = ["RESCAL"]
 
 
 class RESCAL(BaseModule):
@@ -31,26 +31,31 @@ class RESCAL(BaseModule):
     margin_ranking_loss_size_average: bool = True
     hyper_params = BaseModule.hyper_params + [SCORING_FUNCTION_NORM]
 
-    def __init__(self,
-                 margin_loss: float,
-                 embedding_dim: int,
-                 scoring_function: Optional[int] = 1,
-                 random_seed: Optional[int] = None,
-                 preferred_device: str = 'cpu',
-                 **kwargs
-                 ) -> None:
+    def __init__(
+        self,
+        margin_loss: float,
+        embedding_dim: int,
+        scoring_function: Optional[int] = 1,
+        random_seed: Optional[int] = None,
+        preferred_device: str = "cpu",
+        **kwargs
+    ) -> None:
         super().__init__(margin_loss, embedding_dim, random_seed, preferred_device)
 
         self.scoring_fct_norm = scoring_function
 
     def _init_embeddings(self):
         super()._init_embeddings()
-        self.relation_embeddings = nn.Embedding(self.num_relations, self.embedding_dim * self.embedding_dim)
+        self.relation_embeddings = nn.Embedding(
+            self.num_relations, self.embedding_dim * self.embedding_dim
+        )
 
     def predict(self, triples):
         # Check if the model has been fitted yet.
         if self.entity_embeddings is None:
-            print('The model has not been fitted yet. Predictions are based on randomly initialized embeddings.')
+            print(
+                "The model has not been fitted yet. Predictions are based on randomly initialized embeddings."
+            )
             self._init_embeddings()
 
         # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
@@ -60,12 +65,18 @@ class RESCAL(BaseModule):
     def forward(self, positives, negatives):
         positive_scores = self._score_triples(positives)
         negative_scores = self._score_triples(negatives)
-        loss = self._compute_loss(positive_scores=positive_scores, negative_scores=negative_scores)
+        loss = self._compute_loss(
+            positive_scores=positive_scores, negative_scores=negative_scores
+        )
         return loss
 
     def _score_triples(self, triples):
-        head_embeddings, relation_embeddings, tail_embeddings = self._get_triple_embeddings(triples)
-        scores = self._compute_scores(head_embeddings, relation_embeddings, tail_embeddings)
+        head_embeddings, relation_embeddings, tail_embeddings = self._get_triple_embeddings(
+            triples
+        )
+        scores = self._compute_scores(
+            head_embeddings, relation_embeddings, tail_embeddings
+        )
         return scores
 
     def _compute_scores(self, h_embs, r_embs, t_embs):
@@ -87,7 +98,7 @@ class RESCAL(BaseModule):
         return (
             self._get_entity_embeddings(heads),
             self._get_relation_embeddings(relations),
-            self._get_entity_embeddings(tails)
+            self._get_entity_embeddings(tails),
         )
 
     def _get_relation_embeddings(self, relations):

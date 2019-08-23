@@ -15,10 +15,12 @@ from pykeen.kge_models import get_kge_model
 from pykeen.utilities.prediction_utils import make_predictions
 
 
-def start_predictions_pipeline(model_directory: str,
-                               data_directory: str,
-                               path_to_blacklisted_triples: Optional[str] = None,
-                               export_predictions=True) -> None:
+def start_predictions_pipeline(
+    model_directory: str,
+    data_directory: str,
+    path_to_blacklisted_triples: Optional[str] = None,
+    export_predictions=True,
+) -> None:
     """
     Performs inference based on a trained KGE model. The predictions are saved predictions.tsv in the provided
     data directory.
@@ -32,25 +34,33 @@ def start_predictions_pipeline(model_directory: str,
     :return:
     """
     # Load configuration file
-    with open(os.path.join(model_directory, 'configuration.json')) as f:
+    with open(os.path.join(model_directory, "configuration.json")) as f:
         config = json.load(f)
 
     # Load entity to id mapping
-    with open(os.path.join(model_directory, 'entity_to_id.json')) as f:
+    with open(os.path.join(model_directory, "entity_to_id.json")) as f:
         entity_to_id = json.load(f)
 
     # Load relation to id mapping
-    with open(os.path.join(model_directory, 'relation_to_id.json')) as f:
+    with open(os.path.join(model_directory, "relation_to_id.json")) as f:
         relation_to_id = json.load(f)
 
     trained_kge_model: Module = get_kge_model(config=config)
-    path_to_model = os.path.join(model_directory, 'trained_model.pkl')
+    path_to_model = os.path.join(model_directory, "trained_model.pkl")
     trained_kge_model.load_state_dict(torch.load(path_to_model))
 
-    entities = np.loadtxt(fname=os.path.join(data_directory, 'entities.tsv'), dtype=str, delimiter='\t')
-    relations = np.loadtxt(fname=os.path.join(data_directory, 'relations.tsv'), dtype=str, delimiter='\t')
+    entities = np.loadtxt(
+        fname=os.path.join(data_directory, "entities.tsv"), dtype=str, delimiter="\t"
+    )
+    relations = np.loadtxt(
+        fname=os.path.join(data_directory, "relations.tsv"), dtype=str, delimiter="\t"
+    )
 
-    device_name = 'cuda:0' if torch.cuda.is_available() and config[PREFERRED_DEVICE] == GPU else CPU
+    device_name = (
+        "cuda:0"
+        if torch.cuda.is_available() and config[PREFERRED_DEVICE] == GPU
+        else CPU
+    )
     device = torch.device(device_name)
 
     ranked_triples = make_predictions(
@@ -64,6 +74,8 @@ def start_predictions_pipeline(model_directory: str,
     )
 
     if export_predictions:
-        np.savetxt(os.path.join(data_directory, 'predictions.tsv'), ranked_triples, fmt='%s')
+        np.savetxt(
+            os.path.join(data_directory, "predictions.tsv"), ranked_triples, fmt="%s"
+        )
 
     return ranked_triples

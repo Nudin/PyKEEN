@@ -11,12 +11,14 @@ import torch
 import torch.autograd
 from torch import nn
 
-from pykeen.constants import NORM_FOR_NORMALIZATION_OF_ENTITIES, SCORING_FUNCTION_NORM, TRANS_E_NAME
+from pykeen.constants import (
+    NORM_FOR_NORMALIZATION_OF_ENTITIES,
+    SCORING_FUNCTION_NORM,
+    TRANS_E_NAME,
+)
 from pykeen.kge_models.base import BaseModule, slice_triples
 
-__all__ = [
-    'TransE',
-]
+__all__ = ["TransE"]
 
 log = logging.getLogger(__name__)
 
@@ -37,17 +39,21 @@ class TransE(BaseModule):
 
     model_name = TRANS_E_NAME
     margin_ranking_loss_size_average: bool = True
-    hyper_params = BaseModule.hyper_params + [SCORING_FUNCTION_NORM, NORM_FOR_NORMALIZATION_OF_ENTITIES]
+    hyper_params = BaseModule.hyper_params + [
+        SCORING_FUNCTION_NORM,
+        NORM_FOR_NORMALIZATION_OF_ENTITIES,
+    ]
 
-    def __init__(self,
-                 margin_loss: float,
-                 embedding_dim: int,
-                 scoring_function: Optional[int] = 1,
-                 normalization_of_entities: Optional[int] = 2,
-                 random_seed: Optional[int] = None,
-                 preferred_device: str = 'cpu',
-                 **kwargs
-                 ) -> None:
+    def __init__(
+        self,
+        margin_loss: float,
+        embedding_dim: int,
+        scoring_function: Optional[int] = 1,
+        normalization_of_entities: Optional[int] = 2,
+        random_seed: Optional[int] = None,
+        preferred_device: str = "cpu",
+        **kwargs
+    ) -> None:
         super().__init__(margin_loss, embedding_dim, random_seed, preferred_device)
 
         self.l_p_norm_entities = normalization_of_entities
@@ -68,7 +74,8 @@ class TransE(BaseModule):
 
         norms = torch.norm(self.relation_embeddings.weight, p=2, dim=1).data
         self.relation_embeddings.weight.data = self.relation_embeddings.weight.data.div(
-            norms.view(self.num_relations, 1).expand_as(self.relation_embeddings.weight))
+            norms.view(self.num_relations, 1).expand_as(self.relation_embeddings.weight)
+        )
 
     def _init_embeddings(self):
         super()._init_embeddings()
@@ -78,7 +85,9 @@ class TransE(BaseModule):
     def predict(self, triples):
         # Check if the model has been fitted yet.
         if self.entity_embeddings is None:
-            print('The model has not been fitted yet. Predictions are based on randomly initialized embeddings.')
+            print(
+                "The model has not been fitted yet. Predictions are based on randomly initialized embeddings."
+            )
             self._init_embeddings()
 
         triples = torch.tensor(triples, dtype=torch.long, device=self.device)
@@ -87,18 +96,27 @@ class TransE(BaseModule):
 
     def forward(self, batch_positives, batch_negatives):
         # Normalize embeddings of entities
-        norms = torch.norm(self.entity_embeddings.weight, p=self.l_p_norm_entities, dim=1).data
+        norms = torch.norm(
+            self.entity_embeddings.weight, p=self.l_p_norm_entities, dim=1
+        ).data
         self.entity_embeddings.weight.data = self.entity_embeddings.weight.data.div(
-            norms.view(self.num_entities, 1).expand_as(self.entity_embeddings.weight))
+            norms.view(self.num_entities, 1).expand_as(self.entity_embeddings.weight)
+        )
 
         positive_scores = self._score_triples(batch_positives)
         negative_scores = self._score_triples(batch_negatives)
-        loss = self._compute_loss(positive_scores=positive_scores, negative_scores=negative_scores)
+        loss = self._compute_loss(
+            positive_scores=positive_scores, negative_scores=negative_scores
+        )
         return loss
 
     def _score_triples(self, triples):
-        head_embeddings, relation_embeddings, tail_embeddings = self._get_triple_embeddings(triples)
-        scores = self._compute_scores(head_embeddings, relation_embeddings, tail_embeddings)
+        head_embeddings, relation_embeddings, tail_embeddings = self._get_triple_embeddings(
+            triples
+        )
+        scores = self._compute_scores(
+            head_embeddings, relation_embeddings, tail_embeddings
+        )
         return scores
 
     def _compute_scores(self, head_embeddings, relation_embeddings, tail_embeddings):
