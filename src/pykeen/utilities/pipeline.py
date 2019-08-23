@@ -16,7 +16,6 @@ import pykeen.constants as pkc
 from pykeen.hpo import RandomSearch
 from pykeen.kge_models import get_kge_model
 from pykeen.utilities.evaluation_utils.metrics_computations import MetricResults, compute_metric_results
-from pykeen.utilities.train_utils import train_kge_model
 from pykeen.utilities.triples_creation_utils import create_mapped_triples, create_mappings
 
 __all__ = [

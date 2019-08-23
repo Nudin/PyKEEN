@@ -66,7 +66,7 @@ def export_experimental_artifacts(
         results: Mapping,
         output_directory: str,
 ) -> None:
-    """Export export experimental artifacts."""
+    """Export experimental artifacts."""
 
     with open(os.path.join(output_directory, 'configuration.json'), 'w') as file:
         # In HPO model initial configuration is different from final configurations, that's why we differentiate

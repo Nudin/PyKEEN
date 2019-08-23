@@ -15,7 +15,6 @@ import pykeen.constants as pkc
 from pykeen.hpo.utils import HPOptimizer, HPOptimizerResult
 from pykeen.kge_models import get_kge_model
 from pykeen.utilities.evaluation_utils.metrics_computations import compute_metric_results
-from pykeen.utilities.train_utils import train_kge_model
 
 __all__ = [
     'RandomSearch',
