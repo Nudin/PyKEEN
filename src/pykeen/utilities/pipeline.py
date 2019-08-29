@@ -12,6 +12,7 @@ import rdflib
 import torch
 from pykeen.hpo import RandomSearch
 from pykeen.kge_models import get_kge_model
+from pykeen.kge_models.negative_sampling import SamplingStrategy
 from pykeen.utilities.evaluation_utils.metrics_computations import (
     MetricResults,
     compute_metric_results,
@@ -104,6 +105,9 @@ class Pipeline(object):
             kge_model.relation_label_to_id = self.relation_label_to_id
             kge_model.num_entities = len(self.entity_label_to_id)
             kge_model.num_relations = len(self.relation_label_to_id)
+            kge_model.neg_sampling = SamplingStrategy(
+                self.config.get("negative_sampling_strategy", "CORRUPTION")
+            )
 
             batch_size = self.config[pkc.BATCH_SIZE]
             num_epochs = self.config[pkc.NUM_EPOCHS]

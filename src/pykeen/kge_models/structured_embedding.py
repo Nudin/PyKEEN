@@ -13,9 +13,9 @@ from pykeen.constants import (
     SCORING_FUNCTION_NORM,
     SE_NAME,
 )
+from pykeen.kge_models.base import BaseModule
+from .utils import slice_triples
 from torch import nn
-
-from .base import BaseModule, slice_triples
 
 __all__ = ["StructuredEmbedding"]
 

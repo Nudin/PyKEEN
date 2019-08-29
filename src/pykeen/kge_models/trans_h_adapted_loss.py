@@ -9,7 +9,7 @@ import pykeen.constants as pkc
 import torch
 import torch.autograd
 import torch.nn as nn
-from pykeen.kge_models.base import BaseModule, slice_triples
+from pykeen.kge_models.base import BaseModule
 
 __all__ = ["TransH"]
 

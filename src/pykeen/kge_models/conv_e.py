@@ -26,10 +26,9 @@ from pykeen.constants import (
     NUM_RELATIONS,
     PREFERRED_DEVICE,
 )
-from pykeen.kge_models.base import BaseModule, slice_triples
+from pykeen.kge_models.base import BaseModule
 from torch import nn
-from torch.nn import Parameter
-from torch.nn import functional as F
+from torch.nn import Parameter, functional as F
 from torch.nn.init import xavier_normal
 
 __all__ = ["ConvE"]

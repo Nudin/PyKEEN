@@ -14,7 +14,8 @@ from pykeen.constants import (
     SCORING_FUNCTION_NORM,
     TRANS_E_NAME,
 )
-from pykeen.kge_models.base import BaseModule, slice_triples
+from pykeen.kge_models.base import BaseModule
+from .utils import slice_triples
 from torch import nn
 
 __all__ = ["TransE"]

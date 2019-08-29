@@ -28,7 +28,9 @@ from pykeen.utilities.triples_creation_utils import (
 from torch import nn
 from tqdm import trange
 
-__all__ = ["BaseModule", "slice_triples"]
+from .negative_sampling import SamplingStrategy, negative_sample
+
+__all__ = ["BaseModule"]
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +42,7 @@ class BaseModule(nn.Module):
     entity_embedding_max_norm: Optional[int] = None
     entity_embedding_norm_type: int = 2
     hyper_params = [EMBEDDING_DIM, MARGIN_LOSS, LEARNING_RATE]
+    neg_sampling = SamplingStrategy.CORRUPTION
 
     def __init__(
         self,
@@ -307,54 +310,20 @@ class BaseModule(nn.Module):
             )
             current_epoch_loss = 0.0
 
-            for i, pos_batch in enumerate(pos_batches):
-                # TODO: Implement helper functions for different negative sampling approaches
+            for _, pos_batch in enumerate(pos_batches):
                 current_batch_size = len(pos_batch)
 
-                batch_subjs, batch_relations, batch_objs = slice_triples(pos_batch)
+                neg_batch = negative_sample(
+                    self.neg_sampling,
+                    current_batch_size,
+                    pos_batch,
+                    self.num_entities,
+                    all_entities,
+                )
 
-                num_subj_corrupt = len(pos_batch) // 2
-                num_obj_corrupt = len(pos_batch) - num_subj_corrupt
                 pos_batch = torch.tensor(
                     pos_batch, dtype=torch.long, device=self.device
                 )
-
-                corrupted_subj_indices = np.random.choice(
-                    np.arange(0, self.num_entities), size=num_subj_corrupt
-                )
-                corrupted_subjects = np.reshape(
-                    all_entities[corrupted_subj_indices], newshape=(-1, 1)
-                )
-                subject_based_corrupted_triples = np.concatenate(
-                    [
-                        corrupted_subjects,
-                        batch_relations[:num_subj_corrupt],
-                        batch_objs[:num_subj_corrupt],
-                    ],
-                    axis=1,
-                )
-
-                corrupted_obj_indices = np.random.choice(
-                    np.arange(0, self.num_entities), size=num_obj_corrupt
-                )
-                corrupted_objects = np.reshape(
-                    all_entities[corrupted_obj_indices], newshape=(-1, 1)
-                )
-
-                object_based_corrupted_triples = np.concatenate(
-                    [
-                        batch_subjs[num_subj_corrupt:],
-                        batch_relations[num_subj_corrupt:],
-                        corrupted_objects,
-                    ],
-                    axis=1,
-                )
-
-                neg_batch = np.concatenate(
-                    [subject_based_corrupted_triples, object_based_corrupted_triples],
-                    axis=0,
-                )
-
                 neg_batch = torch.tensor(
                     neg_batch, dtype=torch.long, device=self.device
                 )
@@ -378,14 +347,6 @@ class BaseModule(nn.Module):
         )
 
         return loss_per_epoch
-
-
-def slice_triples(triples: np.ndarray):
-    """Get the heads, relations, and tails from a matrix of triples."""
-    h = triples[:, 0:1]
-    r = triples[:, 1:2]
-    t = triples[:, 2:3]
-    return h, r, t
 
 
 def _split_list_in_batches(input_list: np.ndarray, batch_size: int):
