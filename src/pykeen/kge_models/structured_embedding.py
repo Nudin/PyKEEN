@@ -8,15 +8,14 @@ from typing import Dict, Optional
 import numpy as np
 import torch
 import torch.autograd
-from torch import nn
-
 from pykeen.constants import (
     NORM_FOR_NORMALIZATION_OF_ENTITIES,
     SCORING_FUNCTION_NORM,
     SE_NAME,
 )
-from .base import BaseModule, slice_triples
+from torch import nn
 
+from .base import BaseModule, slice_triples
 
 __all__ = ["StructuredEmbedding"]
 

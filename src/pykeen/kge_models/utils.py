@@ -4,14 +4,12 @@
 
 from typing import Dict
 
-from torch.nn import Module
-
 from pykeen.constants import KG_EMBEDDING_MODEL_NAME
 from pykeen.kge_models import (
-    ConvE,
-    DistMult,
     ERMLP,
     RESCAL,
+    ConvE,
+    DistMult,
     StructuredEmbedding,
     TransD,
     TransE,
@@ -19,6 +17,7 @@ from pykeen.kge_models import (
     TransR,
     UnstructuredModel,
 )
+from torch.nn import Module
 
 __all__ = ["KGE_MODELS", "get_kge_model"]
 

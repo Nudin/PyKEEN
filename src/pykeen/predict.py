@@ -8,11 +8,10 @@ from typing import Optional
 
 import numpy as np
 import torch
-from torch.nn import Module
-
 from pykeen.constants import CPU, GPU, PREFERRED_DEVICE
 from pykeen.kge_models import get_kge_model
 from pykeen.utilities.prediction_utils import make_predictions
+from torch.nn import Module
 
 
 def start_predictions_pipeline(

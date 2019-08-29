@@ -6,11 +6,10 @@ from typing import Dict, Optional
 
 import torch
 import torch.autograd
-from torch import nn
-from torch.nn.init import xavier_normal_
-
 from pykeen.constants import DISTMULT_NAME
 from pykeen.kge_models.base import BaseModule, slice_triples
+from torch import nn
+from torch.nn.init import xavier_normal_
 
 __all__ = ["DistMult"]
 

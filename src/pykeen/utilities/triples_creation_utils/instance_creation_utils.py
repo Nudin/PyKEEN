@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from typing import Dict, Optional, Tuple, Union, Iterable
-
-import pykeen.constants as pkc
+from typing import Dict, Iterable, Optional, Tuple, Union
 
 import numpy as np
+import pykeen.constants as pkc
 
 __all__ = ["create_mapped_triples", "create_mappings"]
 

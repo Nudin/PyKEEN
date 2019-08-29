@@ -2,24 +2,16 @@
 
 """Utilities for getting and initializing KGE models."""
 
-from typing import Any, List, Mapping, Optional, Union, Iterable
-
 import logging
-import timeit
-from tqdm import trange
 import random
+import timeit
+from typing import Any, Iterable, List, Mapping, Optional, Union
 
 import numpy as np
-import torch
-import rdflib
-from torch import nn
-import torch.optim as optim
-from pykeen.utilities.triples_creation_utils import (
-    create_mappings,
-    create_mapped_triples,
-)
 import pykeen.constants as pkc
-
+import rdflib
+import torch
+import torch.optim as optim
 from pykeen.constants import (
     EMBEDDING_DIM,
     GPU,
@@ -29,6 +21,12 @@ from pykeen.constants import (
     NUM_RELATIONS,
     PREFERRED_DEVICE,
 )
+from pykeen.utilities.triples_creation_utils import (
+    create_mapped_triples,
+    create_mappings,
+)
+from torch import nn
+from tqdm import trange
 
 __all__ = ["BaseModule", "slice_triples"]
 

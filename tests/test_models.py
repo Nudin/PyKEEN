@@ -4,21 +4,20 @@
 
 import unittest
 
+import torch
 from pykeen.constants import *
 from pykeen.kge_models import (
+    ERMLP,
+    RESCAL,
+    ConvE,
+    DistMult,
+    StructuredEmbedding,
+    TransD,
     TransE,
     TransH,
     TransR,
-    TransD,
-    DistMult,
-    ERMLP,
-    StructuredEmbedding,
     UnstructuredModel,
-    RESCAL,
-    ConvE,
 )
-
-import torch
 
 TRANS_E_CONFIG = {
     NUM_ENTITIES: 5,

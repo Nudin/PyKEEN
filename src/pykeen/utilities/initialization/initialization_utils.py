@@ -5,7 +5,6 @@
 from typing import Dict, Mapping
 
 import torch.optim as optim
-
 from pykeen.constants import (
     ADAGRAD_OPTIMIZER_NAME,
     ADAM_OPTIMIZER_NAME,

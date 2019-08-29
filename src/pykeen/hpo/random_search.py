@@ -2,21 +2,20 @@
 
 """A hyper-parameter optimizer that uses random search."""
 
-from collections import OrderedDict
-
-import numpy as np
 import random
-import torch
-from torch.nn import Module
-from tqdm import trange
+from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pykeen.constants as pkc
+import torch
 from pykeen.hpo.utils import HPOptimizer, HPOptimizerResult
 from pykeen.kge_models import get_kge_model
 from pykeen.utilities.evaluation_utils.metrics_computations import (
     compute_metric_results,
 )
+from torch.nn import Module
+from tqdm import trange
 
 __all__ = ["RandomSearch"]
 

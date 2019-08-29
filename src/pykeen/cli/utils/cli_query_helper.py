@@ -6,7 +6,6 @@ import os
 
 import click
 from prompt_toolkit import prompt
-
 from pykeen.cli.utils.constants import (
     ID_TO_KG_MODEL_MAPPING,
     ID_TO_OPTIMIZER_MAPPING,

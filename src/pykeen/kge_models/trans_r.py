@@ -7,9 +7,9 @@ from typing import Dict, Optional
 import numpy as np
 import torch
 import torch.autograd
+from pykeen.constants import RELATION_EMBEDDING_DIM, SCORING_FUNCTION_NORM, TRANS_R_NAME
 from torch import nn
 
-from pykeen.constants import RELATION_EMBEDDING_DIM, SCORING_FUNCTION_NORM, TRANS_R_NAME
 from .base import BaseModule
 
 __all__ = ["TransR"]

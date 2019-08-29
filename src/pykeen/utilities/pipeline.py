@@ -7,12 +7,9 @@ from collections import OrderedDict
 from typing import Dict, Iterable, Mapping, Optional, Tuple, Union
 
 import numpy as np
+import pykeen.constants as pkc
 import rdflib
 import torch
-from sklearn.model_selection import train_test_split
-from torch.nn import Module
-
-import pykeen.constants as pkc
 from pykeen.hpo import RandomSearch
 from pykeen.kge_models import get_kge_model
 from pykeen.utilities.evaluation_utils.metrics_computations import (
@@ -23,6 +20,8 @@ from pykeen.utilities.triples_creation_utils import (
     create_mapped_triples,
     create_mappings,
 )
+from sklearn.model_selection import train_test_split
+from torch.nn import Module
 
 __all__ = ["Pipeline", "load_data"]
 

@@ -25,10 +25,10 @@ from pykeen.cli.utils import (
     configure_um_training_pipeline,
 )
 from pykeen.kge_models import (
-    ConvE,
-    DistMult,
     ERMLP,
     RESCAL,
+    ConvE,
+    DistMult,
     StructuredEmbedding,
     TransD,
     TransE,

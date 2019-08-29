@@ -6,7 +6,6 @@ import json
 import os
 import unittest
 
-
 from pykeen.constants import (
     CPU,
     EXECUTION_MODE,
@@ -18,6 +17,7 @@ from pykeen.constants import (
     TRAINING_MODE,
 )
 from pykeen.utilities.pipeline import Pipeline
+
 from tests.constants import RESOURCES_DIRECTORY
 
 CONFIG = {SEED: 2, PREFERRED_DEVICE: CPU}

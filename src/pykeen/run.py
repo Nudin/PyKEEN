@@ -11,7 +11,6 @@ from typing import Dict, Mapping, Optional
 
 import numpy as np
 import torch
-
 from pykeen.constants import (
     ENTITY_TO_EMBEDDING,
     ENTITY_TO_ID,

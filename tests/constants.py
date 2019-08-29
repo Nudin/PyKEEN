@@ -8,7 +8,6 @@ import tempfile
 import unittest
 
 import numpy as np
-
 import pykeen
 import pykeen.constants as pkc
 

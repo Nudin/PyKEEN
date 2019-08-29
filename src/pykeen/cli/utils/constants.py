@@ -9,11 +9,12 @@ from pykeen.constants import (
     ADAM_OPTIMIZER_NAME,
     SGD_OPTIMIZER_NAME,
 )
+
 from ...kge_models import (
-    ConvE,
-    DistMult,
     ERMLP,
     RESCAL,
+    ConvE,
+    DistMult,
     StructuredEmbedding,
     TransD,
     TransE,

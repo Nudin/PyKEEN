@@ -8,7 +8,6 @@ from collections import OrderedDict
 from typing import Dict, Optional
 
 import click
-
 from pykeen.cli.dicts import MODEL_HPO_CONFIG_FUNCS, MODEL_TRAINING_CONFIG_FUNCS
 from pykeen.cli.utils.cli_print_msg_helper import (
     print_ask_for_evlauation_message,

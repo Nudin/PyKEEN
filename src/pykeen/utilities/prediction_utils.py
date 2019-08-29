@@ -7,7 +7,6 @@ from itertools import product
 import numpy as np
 import pandas as pd
 import torch
-
 from pykeen.utilities.pipeline import load_data
 from pykeen.utilities.triples_creation_utils import create_mapped_triples
 

@@ -10,7 +10,6 @@ from typing import Dict, TextIO, Union
 
 import click
 import pandas as pd
-
 from pykeen.constants import KG_EMBEDDING_MODEL_NAME
 
 __all__ = ["get_config_dict", "summarize_results"]

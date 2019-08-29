@@ -7,11 +7,10 @@ from typing import Dict, Optional
 
 import torch
 import torch.autograd
-from torch import nn
-from torch.nn.init import xavier_normal_
-
 from pykeen.constants import RELATION_EMBEDDING_DIM, SCORING_FUNCTION_NORM, TRANS_D_NAME
 from pykeen.kge_models.base import BaseModule, slice_triples
+from torch import nn
+from torch.nn.init import xavier_normal_
 
 __all__ = ["TransD"]
 

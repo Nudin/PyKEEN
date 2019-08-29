@@ -2,17 +2,11 @@
 
 """Implementation of ConvE."""
 
-from typing import Dict
+from typing import Dict, Optional
 
 import torch
 import torch.autograd
-from torch import nn
-from torch.nn import Parameter, functional as F
-from torch.nn.init import xavier_normal
-from pykeen.kge_models.base import BaseModule, slice_triples
-from typing import Dict, Optional
 import torch.optim as optim
-
 from pykeen.constants import (
     CONV_E_FEATURE_MAP_DROPOUT,
     CONV_E_HEIGHT,
@@ -25,13 +19,18 @@ from pykeen.constants import (
     CONV_E_OUTPUT_DROPOUT,
     CONV_E_WIDTH,
     EMBEDDING_DIM,
+    GPU,
+    LEARNING_RATE,
+    MARGIN_LOSS,
     NUM_ENTITIES,
     NUM_RELATIONS,
-    MARGIN_LOSS,
-    LEARNING_RATE,
     PREFERRED_DEVICE,
-    GPU,
 )
+from pykeen.kge_models.base import BaseModule, slice_triples
+from torch import nn
+from torch.nn import Parameter
+from torch.nn import functional as F
+from torch.nn.init import xavier_normal
 
 __all__ = ["ConvE"]
 

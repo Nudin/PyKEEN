@@ -6,10 +6,9 @@ from typing import Dict, Optional
 
 import torch
 import torch.autograd
-from torch import nn
-
 from pykeen.constants import ERMLP_NAME
 from pykeen.kge_models.base import BaseModule, slice_triples
+from torch import nn
 
 __all__ = ["ERMLP"]
 

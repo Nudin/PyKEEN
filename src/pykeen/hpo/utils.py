@@ -4,8 +4,9 @@
 
 import random
 from abc import ABC, abstractmethod
-from torch.nn import Module
 from typing import Any, Iterable, List, Mapping, Tuple
+
+from torch.nn import Module
 
 __all__ = ["HPOptimizerResult", "HPOptimizer"]
 

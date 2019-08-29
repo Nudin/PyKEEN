@@ -8,7 +8,6 @@ from typing import TextIO
 
 import click
 from click_default_group import DefaultGroup
-
 from pykeen.cli.prompt import prompt_config
 from pykeen.predict import start_predictions_pipeline
 from pykeen.run import run
