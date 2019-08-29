@@ -55,8 +55,7 @@ class ConvE(BaseModule):
         self.inp_drop = torch.nn.Dropout(conv_e_input_dropout)
         self.hidden_drop = torch.nn.Dropout(conv_e_output_dropout)
         self.feature_map_drop = torch.nn.Dropout2d(conv_e_feature_map_dropout)
-        # self.loss = torch.nn.BCELoss()
-        self.loss = torch.nn.BCEWithLogitsLoss()
+        self.loss = torch.nn.BCELoss()
 
         self.conv1 = torch.nn.Conv2d(
             in_channels=ConvE_input_channels,
@@ -94,7 +93,7 @@ class ConvE(BaseModule):
             print('The model has not been fitted yet. Predictions are based on randomly initialized embeddings.')
             self._init_embeddings()
 
-        # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
+        triples = torch.tensor(triples, dtype=torch.long, device=self.device)
         batch_size = triples.shape[0]
         subject_batch = triples[:, 0:1]
         relation_batch = triples[:, 1:2]
@@ -135,7 +134,7 @@ class ConvE(BaseModule):
 
         # Class 0 represents false fact and class 1 represents true fact
 
-        return scores
+        return scores.detach().cpu().numpy()
 
     def forward(self, pos_batch, neg_batch):
         # batch = torch.cat((pos_batch, neg_batch), dim=0)
@@ -189,7 +188,8 @@ class ConvE(BaseModule):
 
         x = torch.mm(x, self.entity_embeddings.weight.transpose(1,0))
 
-        predictions = x
+        # scores = torch.sum(torch.mm(x, tails_embs.transpose(1, 0)), dim=1)
 
+        predictions = torch.sigmoid(x)
         loss = self.loss(predictions, labels)
         return loss

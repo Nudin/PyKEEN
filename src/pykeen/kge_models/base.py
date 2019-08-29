@@ -218,7 +218,7 @@ class BaseModule(nn.Module):
 
     def predict_objects(self,
                        subject: str,
-                       relation: str) -> str:
+                       relation) -> str:
         """"""
         subject_id = self.entity_label_to_id[subject]
         relation_id = self.relation_label_to_id[relation]
@@ -234,9 +234,6 @@ class BaseModule(nn.Module):
 
         scores = self.predict(torch.tensor(triples, dtype=torch.long, device=self.device))
 
-        scores = scores.detach().cpu().numpy()
-        object_values = object_values
-
         sorting = scores.argsort()
 
         scored_objects = np.vstack((object_values[sorting[::-1]], scores[sorting[::-1]]))
@@ -245,7 +242,7 @@ class BaseModule(nn.Module):
 
     def predict_best_object(self,
                        subject: str,
-                       relation: str) -> str:
+                       relation) -> str:
         """"""
         return self.predict_objects(subject, relation)[0]
 
@@ -267,17 +264,15 @@ class BaseModule(nn.Module):
 
         scores = self.predict(torch.tensor(triples, dtype=torch.long, device=self.device))
 
-        scores = scores.detach().cpu().numpy()
-
         sorting = scores.argsort()
 
-        scored_subjects = np.vstack((subject_values[sorting[::-1]], scores[sorting[::-1]]))
+        scored_subjects = np.vstack((subject_values[sorting], scores[sorting]))
 
         return scored_subjects.T
 
     def predict_best_subject(self,
                        obj: str,
-                       relation: str) -> str:
+                       relation) -> str:
         """"""
         return self.predict_subjects(obj, relation)[0]
 
@@ -310,9 +305,10 @@ class BaseModule(nn.Module):
 
         if optimizer is None:
             # Initialize the standard optimizer with the correct parameters
-            optimizer = self.default_optimizer
-        # Initialize the optimizer given as attribute
-        self.optimizer = optimizer(self.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
+            self.optimizer = self.default_optimizer(self.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
+        else:
+            # Initialize the optimizer given as attribute
+            self.optimizer = optimizer(self.parameters(), lr=self.learning_rate, weight_decay=weight_decay)
 
         log.info(f'****Run Model On {str(self.device).upper()}****')
 
@@ -363,14 +359,14 @@ class BaseModule(nn.Module):
                 # new instance, you need to zero out the gradients from the old instance
                 self.optimizer.zero_grad()
                 loss = self(pos_batch, None)
-                current_epoch_loss += (loss.item() * current_batch_size * self.entity_embeddings.num_embeddings)
+                current_epoch_loss += (loss.item() * current_batch_size)
 
                 loss.backward()
                 self.optimizer.step()
 
             # log.info(f"Epoch {str(epoch)} took {str(round(stop - start))} seconds \n")
             # Track epoch loss
-            loss_per_epoch.append(current_epoch_loss / (len(pos_triples) * self.entity_embeddings.num_embeddings))
+            loss_per_epoch.append(current_epoch_loss / len(pos_triples))
 
         stop_training = timeit.default_timer()
         log.info(f"Training took {str(round(stop_training - start_training))} seconds \n")
