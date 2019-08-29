@@ -15,14 +15,16 @@ from pykeen.run import run
 from pykeen.utilities.summarize import summarize_results
 
 
-@click.group(cls=DefaultGroup, default='train', default_if_no_args=True)
+@click.group(cls=DefaultGroup, default="train", default_if_no_args=True)
 @click.version_option()
 def main():
     """PyKEEN: A software for training and evaluating knowledge graph embeddings."""
 
 
 @main.command()
-@click.option('-c', '--config', type=click.File(), help='A PyKEEN JSON configuration file')
+@click.option(
+    "-c", "--config", type=click.File(), help="A PyKEEN JSON configuration file"
+)
 def train(config):
     """Train a KGE model."""
     if config is not None:
@@ -34,21 +36,32 @@ def train(config):
 
 
 @main.command()
-@click.option('-m', '--model-directory', type=click.Path(file_okay=False, dir_okay=True, exists=True))
-@click.option('-d', '--data-directory', type=click.Path(file_okay=False, dir_okay=True))
-@click.option('-t', '--training-set-path', type=click.Path(file_okay=True, dir_okay=False, exists=True))
+@click.option(
+    "-m",
+    "--model-directory",
+    type=click.Path(file_okay=False, dir_okay=True, exists=True),
+)
+@click.option("-d", "--data-directory", type=click.Path(file_okay=False, dir_okay=True))
+@click.option(
+    "-t",
+    "--training-set-path",
+    type=click.Path(file_okay=True, dir_okay=False, exists=True),
+)
 def predict(model_directory: str, data_directory: str, training_set_path: str):
     """Predict new links based on trained model."""
     start_predictions_pipeline(
-        model_directory,
-        data_directory,
-        path_to_blacklisted_triples=training_set_path,
+        model_directory, data_directory, path_to_blacklisted_triples=training_set_path
     )
 
 
 @main.command()
-@click.option('-d', '--directory', type=click.Path(file_okay=False, dir_okay=True), default=os.getcwd())
-@click.option('-o', '--output', type=click.File('w'), required=True)
+@click.option(
+    "-d",
+    "--directory",
+    type=click.Path(file_okay=False, dir_okay=True),
+    default=os.getcwd(),
+)
+@click.option("-o", "--output", type=click.File("w"), required=True)
 def summarize(directory: str, output: TextIO):
     """Summarize contents of training and evaluation."""
     summarize_results(directory, output)
@@ -58,10 +71,11 @@ def summarize(directory: str, output: TextIO):
 def prefixes():
     """List registered prefixes."""
     from pykeen.constants import IMPORTERS
+
     for name, handler in sorted(IMPORTERS.items()):
-        handler_doc = handler.__doc__.split('\n')[0]
-        click.echo(f'{name}: {handler_doc}')
+        handler_doc = handler.__doc__.split("\n")[0]
+        click.echo(f"{name}: {handler_doc}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

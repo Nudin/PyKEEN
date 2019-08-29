@@ -13,7 +13,7 @@ def get_sorted_dict_from_counter(counter):
     temp_dict = OrderedDict()
 
     for key, value in counter.items():
-        temp_dict[' '.join(key)] = value
+        temp_dict[" ".join(key)] = value
 
     sorted_x = sorted(temp_dict.items(), key=operator.itemgetter(1))
     sorted_x = OrderedDict(sorted_x)
@@ -45,4 +45,3 @@ def compute_number_subjects_per_object_relation_tuples(triples):
     stats = get_sorted_dict_from_counter(stats)
 
     return stats
-

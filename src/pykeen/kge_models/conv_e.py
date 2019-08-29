@@ -14,12 +14,26 @@ from typing import Dict, Optional
 import torch.optim as optim
 
 from pykeen.constants import (
-    CONV_E_FEATURE_MAP_DROPOUT, CONV_E_HEIGHT, CONV_E_INPUT_CHANNELS, CONV_E_INPUT_DROPOUT, CONV_E_KERNEL_HEIGHT,
-    CONV_E_KERNEL_WIDTH, CONV_E_NAME, CONV_E_OUTPUT_CHANNELS, CONV_E_OUTPUT_DROPOUT, CONV_E_WIDTH, EMBEDDING_DIM,
-    NUM_ENTITIES, NUM_RELATIONS,
-    MARGIN_LOSS, LEARNING_RATE, PREFERRED_DEVICE, GPU)
+    CONV_E_FEATURE_MAP_DROPOUT,
+    CONV_E_HEIGHT,
+    CONV_E_INPUT_CHANNELS,
+    CONV_E_INPUT_DROPOUT,
+    CONV_E_KERNEL_HEIGHT,
+    CONV_E_KERNEL_WIDTH,
+    CONV_E_NAME,
+    CONV_E_OUTPUT_CHANNELS,
+    CONV_E_OUTPUT_DROPOUT,
+    CONV_E_WIDTH,
+    EMBEDDING_DIM,
+    NUM_ENTITIES,
+    NUM_RELATIONS,
+    MARGIN_LOSS,
+    LEARNING_RATE,
+    PREFERRED_DEVICE,
+    GPU,
+)
 
-__all__ = ['ConvE']
+__all__ = ["ConvE"]
 
 
 class ConvE(BaseModule):
@@ -32,19 +46,38 @@ class ConvE(BaseModule):
     """
 
     model_name = CONV_E_NAME
-    hyper_params = [EMBEDDING_DIM, CONV_E_INPUT_CHANNELS, CONV_E_OUTPUT_CHANNELS, CONV_E_HEIGHT, CONV_E_WIDTH,
-                    CONV_E_KERNEL_HEIGHT, CONV_E_KERNEL_WIDTH, CONV_E_INPUT_DROPOUT, CONV_E_FEATURE_MAP_DROPOUT,
-                    CONV_E_OUTPUT_DROPOUT, MARGIN_LOSS, LEARNING_RATE]
+    hyper_params = [
+        EMBEDDING_DIM,
+        CONV_E_INPUT_CHANNELS,
+        CONV_E_OUTPUT_CHANNELS,
+        CONV_E_HEIGHT,
+        CONV_E_WIDTH,
+        CONV_E_KERNEL_HEIGHT,
+        CONV_E_KERNEL_WIDTH,
+        CONV_E_INPUT_DROPOUT,
+        CONV_E_FEATURE_MAP_DROPOUT,
+        CONV_E_OUTPUT_DROPOUT,
+        MARGIN_LOSS,
+        LEARNING_RATE,
+    ]
 
-    def __init__(self,
-                 margin_loss: float,
-                 embedding_dim: int,
-                 ConvE_input_channels, ConvE_output_channels, ConvE_height, ConvE_width, ConvE_kernel_height,
-                 ConvE_kernel_width, conv_e_input_dropout, conv_e_output_dropout, conv_e_feature_map_dropout,
-                 random_seed: Optional[int] = None,
-                 preferred_device: str = 'cpu',
-                 **kwargs
-                 ) -> None:
+    def __init__(
+        self,
+        margin_loss: float,
+        embedding_dim: int,
+        ConvE_input_channels,
+        ConvE_output_channels,
+        ConvE_height,
+        ConvE_width,
+        ConvE_kernel_height,
+        ConvE_kernel_width,
+        conv_e_input_dropout,
+        conv_e_output_dropout,
+        conv_e_feature_map_dropout,
+        random_seed: Optional[int] = None,
+        preferred_device: str = "cpu",
+        **kwargs
+    ) -> None:
         super().__init__(margin_loss, embedding_dim, random_seed, preferred_device)
 
         self.ConvE_height = ConvE_height
@@ -71,9 +104,11 @@ class ConvE(BaseModule):
         # num_features – C from an expected input of size (N,C,H,W)
         self.bn1 = torch.nn.BatchNorm2d(ConvE_output_channels)
         self.bn2 = torch.nn.BatchNorm1d(self.embedding_dim)
-        num_in_features = ConvE_output_channels * \
-                          (2 * self.ConvE_height - ConvE_kernel_height + 1) * \
-                          (self.ConvE_width - ConvE_kernel_width + 1)
+        num_in_features = (
+            ConvE_output_channels
+            * (2 * self.ConvE_height - ConvE_kernel_height + 1)
+            * (self.ConvE_width - ConvE_kernel_width + 1)
+        )
         self.fc = torch.nn.Linear(num_in_features, self.embedding_dim)
 
         # Default optimizer for ConvE
@@ -83,7 +118,7 @@ class ConvE(BaseModule):
         super()._init_embeddings()
         self.entity_embeddings = nn.Embedding(self.num_entities, self.embedding_dim)
         self.relation_embeddings = nn.Embedding(self.num_relations, self.embedding_dim)
-        self.register_parameter('b', Parameter(torch.zeros(self.num_entities)))
+        self.register_parameter("b", Parameter(torch.zeros(self.num_entities)))
 
     def init(self):  # FIXME is this ever called?
         xavier_normal(self.entity_embeddings.weight.data)
@@ -92,7 +127,9 @@ class ConvE(BaseModule):
     def predict(self, triples):
         # Check if the model has been fitted yet.
         if self.entity_embeddings is None:
-            print('The model has not been fitted yet. Predictions are based on randomly initialized embeddings.')
+            print(
+                "The model has not been fitted yet. Predictions are based on randomly initialized embeddings."
+            )
             self._init_embeddings()
 
         # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
@@ -101,9 +138,12 @@ class ConvE(BaseModule):
         relation_batch = triples[:, 1:2]
         object_batch = triples[:, 2:3].view(-1)
 
-        subject_batch_embedded = self.entity_embeddings(subject_batch).view(-1, 1, self.ConvE_height, self.ConvE_width)
-        relation_batch_embedded = self.relation_embeddings(relation_batch).view(-1, 1,
-                                                                                self.ConvE_height, self.ConvE_width)
+        subject_batch_embedded = self.entity_embeddings(subject_batch).view(
+            -1, 1, self.ConvE_height, self.ConvE_width
+        )
+        relation_batch_embedded = self.relation_embeddings(relation_batch).view(
+            -1, 1, self.ConvE_height, self.ConvE_width
+        )
         candidate_object_emebddings = self.entity_embeddings(object_batch)
 
         # batch_size, num_input_channels, 2*height, width
@@ -139,8 +179,12 @@ class ConvE(BaseModule):
 
     def forward(self, pos_batch, neg_batch):
         batch = torch.cat((pos_batch, neg_batch), dim=0)
-        positive_labels = torch.ones(pos_batch.shape[0], dtype=torch.float, device=self.device)
-        negative_labels = torch.zeros(neg_batch.shape[0], dtype=torch.float, device=self.device)
+        positive_labels = torch.ones(
+            pos_batch.shape[0], dtype=torch.float, device=self.device
+        )
+        negative_labels = torch.zeros(
+            neg_batch.shape[0], dtype=torch.float, device=self.device
+        )
         labels = torch.cat([positive_labels, negative_labels], dim=0)
 
         perm = torch.randperm(labels.shape[0])
@@ -155,8 +199,12 @@ class ConvE(BaseModule):
         tails = batch[:, 2:3]
 
         # batch_size, num_input_channels, width, height
-        heads_embs = self.entity_embeddings(heads).view(-1, 1, self.ConvE_height, self.ConvE_width)
-        relation_embs = self.relation_embeddings(relations).view(-1, 1, self.ConvE_height, self.ConvE_width)
+        heads_embs = self.entity_embeddings(heads).view(
+            -1, 1, self.ConvE_height, self.ConvE_width
+        )
+        relation_embs = self.relation_embeddings(relations).view(
+            -1, 1, self.ConvE_height, self.ConvE_width
+        )
         tails_embs = self.entity_embeddings(tails).view(-1, self.embedding_dim)
 
         # batch_size, num_input_channels, 2*height, width

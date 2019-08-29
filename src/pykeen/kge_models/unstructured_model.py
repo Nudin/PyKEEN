@@ -10,10 +10,14 @@ import torch
 import torch.autograd
 from torch import nn
 
-from pykeen.constants import NORM_FOR_NORMALIZATION_OF_ENTITIES, SCORING_FUNCTION_NORM, UM_NAME
+from pykeen.constants import (
+    NORM_FOR_NORMALIZATION_OF_ENTITIES,
+    SCORING_FUNCTION_NORM,
+    UM_NAME,
+)
 from pykeen.kge_models.base import BaseModule
 
-__all__ = ['UnstructuredModel']
+__all__ = ["UnstructuredModel"]
 
 log = logging.getLogger(__name__)
 
@@ -28,17 +32,21 @@ class UnstructuredModel(BaseModule):
 
     model_name = UM_NAME
     margin_ranking_loss_size_average: bool = True
-    hyper_params = BaseModule.hyper_params + [SCORING_FUNCTION_NORM, NORM_FOR_NORMALIZATION_OF_ENTITIES]
+    hyper_params = BaseModule.hyper_params + [
+        SCORING_FUNCTION_NORM,
+        NORM_FOR_NORMALIZATION_OF_ENTITIES,
+    ]
 
-    def __init__(self,
-                 margin_loss: float,
-                 embedding_dim: int,
-                 scoring_function: Optional[int] = 1,
-                 normalization_of_entities: Optional[int] = 2,
-                 random_seed: Optional[int] = None,
-                 preferred_device: str = 'cpu',
-                 **kwargs
-                 ) -> None:
+    def __init__(
+        self,
+        margin_loss: float,
+        embedding_dim: int,
+        scoring_function: Optional[int] = 1,
+        normalization_of_entities: Optional[int] = 2,
+        random_seed: Optional[int] = None,
+        preferred_device: str = "cpu",
+        **kwargs
+    ) -> None:
         super().__init__(margin_loss, embedding_dim, random_seed, preferred_device)
         self.l_p_norm_entities = normalization_of_entities
         self.scoring_fct_norm = scoring_function
@@ -58,7 +66,9 @@ class UnstructuredModel(BaseModule):
     def predict(self, triples):
         # Check if the model has been fitted yet.
         if self.entity_embeddings is None:
-            print('The model has not been fitted yet. Predictions are based on randomly initialized embeddings.')
+            print(
+                "The model has not been fitted yet. Predictions are based on randomly initialized embeddings."
+            )
             self._init_embeddings()
 
         # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
@@ -69,12 +79,16 @@ class UnstructuredModel(BaseModule):
         # Normalize embeddings of entities
         pos_scores = self._score_triples(batch_positives)
         neg_scores = self._score_triples(batch_negatives)
-        loss = self._compute_loss(positive_scores=pos_scores, negative_scores=neg_scores)
+        loss = self._compute_loss(
+            positive_scores=pos_scores, negative_scores=neg_scores
+        )
         return loss
 
     def _score_triples(self, triples):
         head_embeddings, tail_embeddings = self._get_triple_embeddings(triples)
-        scores = self._compute_scores(head_embeddings=head_embeddings, tail_embeddings=tail_embeddings)
+        scores = self._compute_scores(
+            head_embeddings=head_embeddings, tail_embeddings=tail_embeddings
+        )
         return scores
 
     def _compute_scores(self, head_embeddings, tail_embeddings):
@@ -86,17 +100,11 @@ class UnstructuredModel(BaseModule):
 
     def _get_triple_embeddings(self, triples):
         heads, tails = self.slice_triples(triples)
-        return (
-            self._get_entity_embeddings(heads),
-            self._get_entity_embeddings(tails),
-        )
+        return (self._get_entity_embeddings(heads), self._get_entity_embeddings(tails))
 
     def _get_entity_embeddings(self, entities):
         return self.entity_embeddings(entities).view(-1, self.embedding_dim)
 
     @staticmethod
     def slice_triples(triples):
-        return (
-            triples[:, 0:1],
-            triples[:, 2:3],
-        )
+        return (triples[:, 0:1], triples[:, 2:3])

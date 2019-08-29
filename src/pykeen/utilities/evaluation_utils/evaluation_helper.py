@@ -20,8 +20,11 @@ def get_stratey_for_corrupting(corrupt_suject):
 
         concatenate_fct = _concatenate_entites_last
 
-    return (start_of_columns_to_maintain, end_of_columns_to_maintain), (
-        start_of_corrupted_colum, end_of_corrupted_column), concatenate_fct
+    return (
+        (start_of_columns_to_maintain, end_of_columns_to_maintain),
+        (start_of_corrupted_colum, end_of_corrupted_column),
+        concatenate_fct,
+    )
 
 
 def _concatenate_entites_first(candidate_entities, tuples):

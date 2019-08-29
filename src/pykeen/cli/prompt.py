@@ -11,42 +11,70 @@ import click
 
 from pykeen.cli.dicts import MODEL_HPO_CONFIG_FUNCS, MODEL_TRAINING_CONFIG_FUNCS
 from pykeen.cli.utils.cli_print_msg_helper import (
-    print_ask_for_evlauation_message, print_filter_negative_triples_message, print_intro,
-    print_model_selection_message, print_random_seed_message, print_section_divider, print_test_ratio_message,
-    print_test_set_message, print_training_set_message, print_welcome_message,
+    print_ask_for_evlauation_message,
+    print_filter_negative_triples_message,
+    print_intro,
+    print_model_selection_message,
+    print_random_seed_message,
+    print_section_divider,
+    print_test_ratio_message,
+    print_test_set_message,
+    print_training_set_message,
+    print_welcome_message,
 )
 from pykeen.cli.utils.cli_query_helper import (
-    ask_for_filtering_of_negatives, get_input_path, query_output_directory, select_embedding_model,
-    select_integer_value, select_keen_execution_mode, select_preferred_device, select_ratio_for_test_set,
+    ask_for_filtering_of_negatives,
+    get_input_path,
+    query_output_directory,
+    select_embedding_model,
+    select_integer_value,
+    select_keen_execution_mode,
+    select_preferred_device,
+    select_ratio_for_test_set,
 )
 from pykeen.constants import (
-    EXECUTION_MODE, FILTER_NEG_TRIPLES, HPO_ITERS_ERROR_MSG, HPO_ITERS_PRINT_MSG, HPO_ITERS_PROMPT_MSG, HPO_MODE,
-    NUM_OF_HPO_ITERS, OUTPUT_DIREC, PREFERRED_DEVICE, PYKEEN, SEED, SEED_ERROR_MSG, SEED_PRINT_MSG, SEED_PROMPT_MSG,
-    TEST_FILE_PROMPT_MSG, TEST_SET_PATH, TEST_SET_RATIO, TRAINING_FILE_PROMPT_MSG, TRAINING_MODE, TRAINING_SET_PATH,
+    EXECUTION_MODE,
+    FILTER_NEG_TRIPLES,
+    HPO_ITERS_ERROR_MSG,
+    HPO_ITERS_PRINT_MSG,
+    HPO_ITERS_PROMPT_MSG,
+    HPO_MODE,
+    NUM_OF_HPO_ITERS,
+    OUTPUT_DIREC,
+    PREFERRED_DEVICE,
+    PYKEEN,
+    SEED,
+    SEED_ERROR_MSG,
+    SEED_PRINT_MSG,
+    SEED_PROMPT_MSG,
+    TEST_FILE_PROMPT_MSG,
+    TEST_SET_PATH,
+    TEST_SET_RATIO,
+    TRAINING_FILE_PROMPT_MSG,
+    TRAINING_MODE,
+    TRAINING_SET_PATH,
 )
 
-__all__ = [
-    'prompt_config',
-]
+__all__ = ["prompt_config"]
 
 
 def _configure_training_pipeline(model_name: str):
     model_config_func = MODEL_TRAINING_CONFIG_FUNCS.get(model_name)
     if model_config_func is None:
-        raise KeyError(f'invalid model given: {model_name}')
+        raise KeyError(f"invalid model given: {model_name}")
     config = model_config_func(model_name)
     if config is None:
-        raise NotImplementedError(f'{model_name} has not yet been implemented')
+        raise NotImplementedError(f"{model_name} has not yet been implemented")
     return config
 
 
 def _configure_hpo_pipeline(model_name: str):
     model_config_func = MODEL_HPO_CONFIG_FUNCS.get(model_name)
     if model_config_func is None:
-        raise KeyError(f'invalid model given: {model_name}')
+        raise KeyError(f"invalid model given: {model_name}")
     config = model_config_func(model_name)
     if config is None:
-        raise NotImplementedError(f'{model_name} has not yet been implemented')
+        raise NotImplementedError(f"{model_name} has not yet been implemented")
     return config
 
 
@@ -55,7 +83,7 @@ def prompt_evaluation_parameters(config: Dict) -> None:
     if config[EXECUTION_MODE] == TRAINING_MODE:
         # Step 1: Ask whether to evaluate the model
         print_ask_for_evlauation_message()
-        is_evaluation_mode = click.confirm('Do you want to evaluate your model?')
+        is_evaluation_mode = click.confirm("Do you want to evaluate your model?")
         print_section_divider()
     else:
         is_evaluation_mode = True
@@ -63,7 +91,7 @@ def prompt_evaluation_parameters(config: Dict) -> None:
     # Step 2: Specify test set, if is_evaluation_mode==True
     if is_evaluation_mode:
         print_test_set_message()
-        provide_test_set = click.confirm('Do you provide a test set yourself?')
+        provide_test_set = click.confirm("Do you provide a test set yourself?")
         print_section_divider()
 
         if provide_test_set:
@@ -138,7 +166,12 @@ def prompt_device(config: Dict) -> None:
     config[PREFERRED_DEVICE] = select_preferred_device()
 
 
-def prompt_config(*, config: Optional[Dict] = None, show_welcome: bool = True, do_prompt_training: bool = True) -> Dict:
+def prompt_config(
+    *,
+    config: Optional[Dict] = None,
+    show_welcome: bool = True,
+    do_prompt_training: bool = True,
+) -> Dict:
     """Prompt the user for the run configuration."""
     if config is None:
         config = OrderedDict()

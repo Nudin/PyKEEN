@@ -41,15 +41,15 @@ from pykeen.kge_models.unstructured_model import UnstructuredModel  # noqa: F401
 from pykeen.kge_models.utils import get_kge_model  # noqa: F401
 
 __all__ = [
-    'TransE',
-    'TransH',
-    'TransR',
-    'TransD',
-    'ConvE',
-    'StructuredEmbedding',
-    'UnstructuredModel',
-    'RESCAL',
-    'ERMLP',
-    'DistMult',
-    'get_kge_model',
+    "TransE",
+    "TransH",
+    "TransR",
+    "TransD",
+    "ConvE",
+    "StructuredEmbedding",
+    "UnstructuredModel",
+    "RESCAL",
+    "ERMLP",
+    "DistMult",
+    "get_kge_model",
 ]

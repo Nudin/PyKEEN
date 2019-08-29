@@ -12,26 +12,29 @@ import torch.nn as nn
 import pykeen.constants as pkc
 from pykeen.kge_models.base import BaseModule, slice_triples
 
-__all__ = ['TransH']
+__all__ = ["TransH"]
 
 
 class TransH(BaseModule):
 
     model_name = pkc.TRANS_H_NAME
 
-    def __init__(self,
-                 margin_loss: float,
-                 embedding_dim: int,
-                 weigthing_soft_constraint,
-                 scoring_function: Optional[int] = 1,
-                 random_seed: Optional[int] = None,
-                 preferred_device: str = 'cpu',
-                 **kwargs):
+    def __init__(
+        self,
+        margin_loss: float,
+        embedding_dim: int,
+        weigthing_soft_constraint,
+        scoring_function: Optional[int] = 1,
+        random_seed: Optional[int] = None,
+        preferred_device: str = "cpu",
+        **kwargs
+    ):
         super().__init__(margin_loss, embedding_dim, random_seed, preferred_device)
 
-
         self.weighting_soft_constraint = weigthing_soft_constraint
-        self.criterion = nn.MarginRankingLoss(margin=self.margin_loss, size_average=False)
+        self.criterion = nn.MarginRankingLoss(
+            margin=self.margin_loss, size_average=False
+        )
         self.epsilon = 0.05
         self.scoring_fct_norm = scoring_function
 
@@ -40,7 +43,9 @@ class TransH(BaseModule):
         # A simple lookup table that stores embeddings of a fixed dictionary and size
         self.entity_embeddings = nn.Embedding(self.num_entities, self.embedding_dim)
         self.relation_embeddings = nn.Embedding(self.num_relations, self.embedding_dim)
-        self.normal_vector_embeddings = nn.Embedding(self.num_relations, self.embedding_dim)
+        self.normal_vector_embeddings = nn.Embedding(
+            self.num_relations, self.embedding_dim
+        )
 
     def _initialize(self):
         # TODO: Add initialization
@@ -56,7 +61,9 @@ class TransH(BaseModule):
 
         scaling_factors = torch.sum(normal_vec_embs * entity_embs, dim=-1).unsqueeze(1)
         heads_projected_on_normal_vecs = scaling_factors * normal_vec_embs
-        projections = (entity_embs - heads_projected_on_normal_vecs).view(-1, self.embedding_dim)
+        projections = (entity_embs - heads_projected_on_normal_vecs).view(
+            -1, self.embedding_dim
+        )
 
         return projections
 
@@ -87,29 +94,42 @@ class TransH(BaseModule):
 
         norm_of_entities = torch.norm(entity_embs, p=2, dim=1)
         square_norms_entities = torch.mul(norm_of_entities, norm_of_entities)
-        entity_constraint = square_norms_entities - self.num_entities * 1.
+        entity_constraint = square_norms_entities - self.num_entities * 1.0
         entity_constraint = torch.abs(entity_constraint)
         entity_constraint = torch.sum(entity_constraint)
 
-        orthogonalty_constraint_numerator = torch.mul(normal_vector_embeddings, relation_embeddings)
-        orthogonalty_constraint_numerator = torch.sum(orthogonalty_constraint_numerator, dim=1)
-        orthogonalty_constraint_numerator = torch.mul(orthogonalty_constraint_numerator,
-                                                      orthogonalty_constraint_numerator)
+        orthogonalty_constraint_numerator = torch.mul(
+            normal_vector_embeddings, relation_embeddings
+        )
+        orthogonalty_constraint_numerator = torch.sum(
+            orthogonalty_constraint_numerator, dim=1
+        )
+        orthogonalty_constraint_numerator = torch.mul(
+            orthogonalty_constraint_numerator, orthogonalty_constraint_numerator
+        )
 
-        orthogonalty_constraint_denominator = torch.norm(relation_embeddings, p=2, dim=1)
-        orthogonalty_constraint_denominator = torch.mul(orthogonalty_constraint_denominator,
-                                                        orthogonalty_constraint_denominator)
+        orthogonalty_constraint_denominator = torch.norm(
+            relation_embeddings, p=2, dim=1
+        )
+        orthogonalty_constraint_denominator = torch.mul(
+            orthogonalty_constraint_denominator, orthogonalty_constraint_denominator
+        )
 
-        orthogonalty_constraint = (orthogonalty_constraint_numerator / orthogonalty_constraint_denominator) - \
-                                  (self.num_relations * self.epsilon)
+        orthogonalty_constraint = (
+            orthogonalty_constraint_numerator / orthogonalty_constraint_denominator
+        ) - (self.num_relations * self.epsilon)
         orthogonalty_constraint = torch.abs(orthogonalty_constraint)
         orthogonalty_constraint = torch.sum(orthogonalty_constraint)
 
-        soft_constraints_loss = self.weightning_soft_constraint * (entity_constraint + orthogonalty_constraint)
+        soft_constraints_loss = self.weightning_soft_constraint * (
+            entity_constraint + orthogonalty_constraint
+        )
 
         return soft_constraints_loss
 
-    def compute_loss(self, positive_scores, negative_scores, batch_entities, batch_relations):
+    def compute_loss(
+        self, positive_scores, negative_scores, batch_entities, batch_relations
+    ):
         """
 
         :param positive_scores:
@@ -117,8 +137,12 @@ class TransH(BaseModule):
         :return:
         """
 
-        margin_ranking_loss = super(TransH, self)._compute_loss(positive_scores=positive_scores, negative_scores=negative_scores)
-        soft_constraint_loss = self.compute_soft_constraint_loss(batch_entities, batch_relations)
+        margin_ranking_loss = super(TransH, self)._compute_loss(
+            positive_scores=positive_scores, negative_scores=negative_scores
+        )
+        soft_constraint_loss = self.compute_soft_constraint_loss(
+            batch_entities, batch_relations
+        )
 
         loss = margin_ranking_loss + soft_constraint_loss
 
@@ -134,7 +158,9 @@ class TransH(BaseModule):
         """
         # Check if the model has been fitted yet.
         if self.entity_embeddings is None:
-            print('The model has not been fitted yet. Predictions are based on randomly initialized embeddings.')
+            print(
+                "The model has not been fitted yet. Predictions are based on randomly initialized embeddings."
+            )
             self._init_embeddings()
 
         heads = triples[:, 0:1]
@@ -146,10 +172,16 @@ class TransH(BaseModule):
         relation_embs = self.relation_embeddings(relations).view(-1, self.embedding_dim)
         normal_vec_embs = self.normal_vector_embeddings(relations)
 
-        head_embs_projected = self.project_to_hyperplane(entity_embs=head_embs, normal_vec_embs=normal_vec_embs)
-        tail_embs_projected = self.project_to_hyperplane(entity_embs=tail_embs, normal_vec_embs=normal_vec_embs)
+        head_embs_projected = self.project_to_hyperplane(
+            entity_embs=head_embs, normal_vec_embs=normal_vec_embs
+        )
+        tail_embs_projected = self.project_to_hyperplane(
+            entity_embs=tail_embs, normal_vec_embs=normal_vec_embs
+        )
 
-        scores = self._compute_scores(h_embs=head_embs_projected, r_embs=relation_embs, t_embs=tail_embs_projected)
+        scores = self._compute_scores(
+            h_embs=head_embs_projected, r_embs=relation_embs, t_embs=tail_embs_projected
+        )
 
         return scores.detach().cpu().numpy()
 
@@ -164,7 +196,10 @@ class TransH(BaseModule):
         # Normalise the normal vectors by their l2 norms
         norms = torch.norm(self.normal_vector_embeddings.weight, p=2, dim=1).data
         self.normal_vector_embeddings.weight.data = self.normal_vector_embeddings.weight.data.div(
-            norms.view(self.num_relations, 1).expand_as(self.normal_vector_embeddings.weight))
+            norms.view(self.num_relations, 1).expand_as(
+                self.normal_vector_embeddings.weight
+            )
+        )
 
         pos_heads = batch_positives[:, 0:1]
         pos_rels = batch_positives[:, 1:2]
@@ -187,23 +222,48 @@ class TransH(BaseModule):
         neg_tail_embs = self.entity_embeddings(neg_tails)
         neg_normal_embs = self.normal_vector_embeddings(neg_rels)
 
-        projected_heads_pos = self.project_to_hyperplane(entity_embs=pos_head_embs, normal_vec_embs=pos_normal_embs)
-        projected_tails_pos = self.project_to_hyperplane(entity_embs=pos_tail_embs, normal_vec_embs=pos_normal_embs)
+        projected_heads_pos = self.project_to_hyperplane(
+            entity_embs=pos_head_embs, normal_vec_embs=pos_normal_embs
+        )
+        projected_tails_pos = self.project_to_hyperplane(
+            entity_embs=pos_tail_embs, normal_vec_embs=pos_normal_embs
+        )
 
-        projected_heads_neg = self.project_to_hyperplane(entity_embs=neg_head_embs, normal_vec_embs=neg_normal_embs)
-        projected_tails_neg = self.project_to_hyperplane(entity_embs=neg_tail_embs, normal_vec_embs=neg_normal_embs)
+        projected_heads_neg = self.project_to_hyperplane(
+            entity_embs=neg_head_embs, normal_vec_embs=neg_normal_embs
+        )
+        projected_tails_neg = self.project_to_hyperplane(
+            entity_embs=neg_tail_embs, normal_vec_embs=neg_normal_embs
+        )
 
-        pos_scores = self._compute_scores(h_embs=projected_heads_pos, r_embs=pos_rel_embs, t_embs=projected_tails_pos)
-        neg_scores = self._compute_scores(h_embs=projected_heads_neg, r_embs=neg_rel_embs, t_embs=projected_tails_neg)
+        pos_scores = self._compute_scores(
+            h_embs=projected_heads_pos, r_embs=pos_rel_embs, t_embs=projected_tails_pos
+        )
+        neg_scores = self._compute_scores(
+            h_embs=projected_heads_neg, r_embs=neg_rel_embs, t_embs=projected_tails_neg
+        )
 
-        batch_entities = torch.cat([pos_heads.view(-1), pos_tails.view(-1), neg_heads.view(-1), neg_tails.view(-1)])
+        batch_entities = torch.cat(
+            [
+                pos_heads.view(-1),
+                pos_tails.view(-1),
+                neg_heads.view(-1),
+                neg_tails.view(-1),
+            ]
+        )
         batch_entities = torch.unique(batch_entities.cpu())
-        batch_relations = torch.unique(torch.cat([pos_rels.view(-1), neg_rels.view(-1)]).cpu())
+        batch_relations = torch.unique(
+            torch.cat([pos_rels.view(-1), neg_rels.view(-1)]).cpu()
+        )
 
         if self.use_cuda:
             batch_entities = batch_entities.cuda()
             batch_relations = batch_relations.cuda()
 
-        loss = self.compute_loss(positive_scores=pos_scores, negative_scores=neg_scores, batch_entities=batch_entities,
-                                 batch_relations=batch_relations)
+        loss = self.compute_loss(
+            positive_scores=pos_scores,
+            negative_scores=neg_scores,
+            batch_entities=batch_entities,
+            batch_relations=batch_relations,
+        )
         return loss

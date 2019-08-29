@@ -13,14 +13,12 @@ import pykeen
 import pykeen.constants as pkc
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger('pykeen').setLevel(logging.INFO)
+logging.getLogger("pykeen").setLevel(logging.INFO)
 
-__all__ = [
-    'RESOURCES_DIRECTORY',
-]
+__all__ = ["RESOURCES_DIRECTORY"]
 
 HERE = os.path.abspath(os.path.dirname(__file__))
-RESOURCES_DIRECTORY = os.path.join(HERE, 'resources')
+RESOURCES_DIRECTORY = os.path.join(HERE, "resources")
 
 
 def set_training_mode_specific_parameters(config):
@@ -49,8 +47,11 @@ def set_evaluation_specific_parameters(config):
 
 class BaseTestTrainingMode(unittest.TestCase):
     """Base class for testing the training mode."""
+
     config = dict()
-    config[pkc.TRAINING_SET_PATH] = os.path.join(RESOURCES_DIRECTORY, 'data', 'rdf.nt'),
+    config[pkc.TRAINING_SET_PATH] = (
+        os.path.join(RESOURCES_DIRECTORY, "data", "rdf.nt"),
+    )
     config[pkc.SEED] = 0
     config[pkc.LEARNING_RATE] = 0.01
     config[pkc.NUM_EPOCHS] = 10
@@ -65,10 +66,7 @@ class BaseTestTrainingMode(unittest.TestCase):
 
     def execute_pipeline(self, config):
         """Test that ConvE is trained correctly in training mode."""
-        results = pykeen.run(
-            config=config,
-            output_directory=self.dir.name,
-        )
+        results = pykeen.run(config=config, output_directory=self.dir.name)
 
         return results
 
@@ -93,7 +91,15 @@ class BaseTestTrainingMode(unittest.TestCase):
         self.assertIn(pkc.MEAN_RANK, results.results[pkc.EVAL_SUMMARY])
         self.assertEqual(type(results.results[pkc.EVAL_SUMMARY][pkc.MEAN_RANK]), float)
         self.assertIn(pkc.HITS_AT_K, results.results[pkc.EVAL_SUMMARY])
-        self.assertEqual(type(results.results[pkc.EVAL_SUMMARY][pkc.HITS_AT_K][1]), np.float64)
-        self.assertEqual(type(results.results[pkc.EVAL_SUMMARY][pkc.HITS_AT_K][3]), np.float64)
-        self.assertEqual(type(results.results[pkc.EVAL_SUMMARY][pkc.HITS_AT_K][5]), np.float64)
-        self.assertEqual(type(results.results[pkc.EVAL_SUMMARY][pkc.HITS_AT_K][10]), np.float64)
+        self.assertEqual(
+            type(results.results[pkc.EVAL_SUMMARY][pkc.HITS_AT_K][1]), np.float64
+        )
+        self.assertEqual(
+            type(results.results[pkc.EVAL_SUMMARY][pkc.HITS_AT_K][3]), np.float64
+        )
+        self.assertEqual(
+            type(results.results[pkc.EVAL_SUMMARY][pkc.HITS_AT_K][5]), np.float64
+        )
+        self.assertEqual(
+            type(results.results[pkc.EVAL_SUMMARY][pkc.HITS_AT_K][10]), np.float64
+        )

@@ -12,7 +12,7 @@ from torch import nn
 from pykeen.constants import RELATION_EMBEDDING_DIM, SCORING_FUNCTION_NORM, TRANS_R_NAME
 from .base import BaseModule
 
-__all__ = ['TransR']
+__all__ = ["TransR"]
 
 
 class TransR(BaseModule):
@@ -44,16 +44,21 @@ class TransR(BaseModule):
     entity_embedding_norm_type = 2
     relation_embedding_max_norm = 1
     relation_embedding_norm_type = 2
-    hyper_params = BaseModule.hyper_params + [RELATION_EMBEDDING_DIM, SCORING_FUNCTION_NORM]
+    hyper_params = BaseModule.hyper_params + [
+        RELATION_EMBEDDING_DIM,
+        SCORING_FUNCTION_NORM,
+    ]
 
-    def __init__(self,
-                 margin_loss: float,
-                 embedding_dim: int,
-                 relation_embedding_dim,
-                 scoring_function: Optional[int] = 1,
-                 random_seed: Optional[int] = None,
-                 preferred_device: str = 'cpu',
-                 **kwargs) -> None:
+    def __init__(
+        self,
+        margin_loss: float,
+        embedding_dim: int,
+        relation_embedding_dim,
+        scoring_function: Optional[int] = 1,
+        random_seed: Optional[int] = None,
+        preferred_device: str = "cpu",
+        **kwargs
+    ) -> None:
         super().__init__(margin_loss, embedding_dim, random_seed, preferred_device)
 
         self.scoring_fct_norm = scoring_function
@@ -64,14 +69,21 @@ class TransR(BaseModule):
     def _init_embeddings(self):
         super()._init_embeddings()
         # max_norm = 1 according to the paper
-        self.relation_embeddings = nn.Embedding(self.num_relations, self.relation_embedding_dim,
-                                                norm_type=self.relation_embedding_norm_type,
-                                                max_norm=self.relation_embedding_max_norm)
-        self.projection_matrix_embs = nn.Embedding(self.num_relations, self.relation_embedding_dim * self.embedding_dim)
+        self.relation_embeddings = nn.Embedding(
+            self.num_relations,
+            self.relation_embedding_dim,
+            norm_type=self.relation_embedding_norm_type,
+            max_norm=self.relation_embedding_max_norm,
+        )
+        self.projection_matrix_embs = nn.Embedding(
+            self.num_relations, self.relation_embedding_dim * self.embedding_dim
+        )
         self._initialize()
 
     def _initialize(self):
-        entity_embeddings_init_bound = relation_embeddings_init_bound = 6 / np.sqrt(self.embedding_dim)
+        entity_embeddings_init_bound = relation_embeddings_init_bound = 6 / np.sqrt(
+            self.embedding_dim
+        )
         nn.init.uniform_(
             self.entity_embeddings.weight.data,
             a=-entity_embeddings_init_bound,
@@ -85,7 +97,8 @@ class TransR(BaseModule):
 
         norms = torch.norm(self.relation_embeddings.weight, p=2, dim=1).data
         self.relation_embeddings.weight.data = self.relation_embeddings.weight.data.div(
-            norms.view(self.num_relations, 1).expand_as(self.relation_embeddings.weight))
+            norms.view(self.num_relations, 1).expand_as(self.relation_embeddings.weight)
+        )
 
     def _compute_scores(self, h_embs, r_embs, t_embs):
         # Add the vector element wise
@@ -95,14 +108,18 @@ class TransR(BaseModule):
         return distances
 
     def _project_entities(self, entity_embs, projection_matrix_embs):
-        projected_entity_embs = torch.einsum('nk,nkd->nd', [entity_embs, projection_matrix_embs])
-        projected_entity_embs = torch.clamp(projected_entity_embs, max=1.)
+        projected_entity_embs = torch.einsum(
+            "nk,nkd->nd", [entity_embs, projection_matrix_embs]
+        )
+        projected_entity_embs = torch.clamp(projected_entity_embs, max=1.0)
         return projected_entity_embs
 
     def predict(self, triples):
         # Check if the model has been fitted yet.
         if self.entity_embeddings is None:
-            print('The model has not been fitted yet. Predictions are based on randomly initialized embeddings.')
+            print(
+                "The model has not been fitted yet. Predictions are based on randomly initialized embeddings."
+            )
             self._init_embeddings()
 
         # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
@@ -111,16 +128,21 @@ class TransR(BaseModule):
         tails = triples[:, 2:3]
 
         head_embs = self.entity_embeddings(heads).view(-1, self.embedding_dim)
-        relation_embs = self.relation_embeddings(relations).view(-1, self.relation_embedding_dim)
+        relation_embs = self.relation_embeddings(relations).view(
+            -1, self.relation_embedding_dim
+        )
         tail_embs = self.entity_embeddings(tails).view(-1, self.embedding_dim)
 
-        proj_matrix_embs = self.projection_matrix_embs(relations).view(-1, self.embedding_dim,
-                                                                       self.relation_embedding_dim)
+        proj_matrix_embs = self.projection_matrix_embs(relations).view(
+            -1, self.embedding_dim, self.relation_embedding_dim
+        )
 
         proj_heads_embs = self._project_entities(head_embs, proj_matrix_embs)
         proj_tails_embs = self._project_entities(tail_embs, proj_matrix_embs)
 
-        scores = self._compute_scores(h_embs=proj_heads_embs, r_embs=relation_embs, t_embs=proj_tails_embs)
+        scores = self._compute_scores(
+            h_embs=proj_heads_embs, r_embs=relation_embs, t_embs=proj_tails_embs
+        )
 
         return scores.detach().cpu().numpy()
 
@@ -134,15 +156,20 @@ class TransR(BaseModule):
         neg_tails = batch_negatives[:, 2:3]
 
         pos_h_embs = self.entity_embeddings(pos_heads).view(-1, self.embedding_dim)
-        pos_r_embs = self.relation_embeddings(pos_relations).view(-1, self.relation_embedding_dim)
+        pos_r_embs = self.relation_embeddings(pos_relations).view(
+            -1, self.relation_embedding_dim
+        )
         pos_t_embs = self.entity_embeddings(pos_tails).view(-1, self.embedding_dim)
 
         neg_h_embs = self.entity_embeddings(neg_heads).view(-1, self.embedding_dim)
-        neg_r_embs = self.relation_embeddings(neg_relations).view(-1, self.relation_embedding_dim)
+        neg_r_embs = self.relation_embeddings(neg_relations).view(
+            -1, self.relation_embedding_dim
+        )
         neg_t_embs = self.entity_embeddings(neg_tails).view(-1, self.embedding_dim)
 
-        proj_matrix_embs = self.projection_matrix_embs(pos_relations).view(-1, self.embedding_dim,
-                                                                           self.relation_embedding_dim)
+        proj_matrix_embs = self.projection_matrix_embs(pos_relations).view(
+            -1, self.embedding_dim, self.relation_embedding_dim
+        )
 
         # Project entities into relation space
         proj_pos_heads_embs = self._project_entities(pos_h_embs, proj_matrix_embs)
@@ -151,8 +178,14 @@ class TransR(BaseModule):
         proj_neg_heads_embs = self._project_entities(neg_h_embs, proj_matrix_embs)
         proj_neg_tails_embs = self._project_entities(neg_t_embs, proj_matrix_embs)
 
-        pos_scores = self._compute_scores(h_embs=proj_pos_heads_embs, r_embs=pos_r_embs, t_embs=proj_pos_tails_embs)
-        neg_scores = self._compute_scores(h_embs=proj_neg_heads_embs, r_embs=neg_r_embs, t_embs=proj_neg_tails_embs)
+        pos_scores = self._compute_scores(
+            h_embs=proj_pos_heads_embs, r_embs=pos_r_embs, t_embs=proj_pos_tails_embs
+        )
+        neg_scores = self._compute_scores(
+            h_embs=proj_neg_heads_embs, r_embs=neg_r_embs, t_embs=proj_neg_tails_embs
+        )
 
-        loss = self._compute_loss(positive_scores=pos_scores, negative_scores=neg_scores)
+        loss = self._compute_loss(
+            positive_scores=pos_scores, negative_scores=neg_scores
+        )
         return loss

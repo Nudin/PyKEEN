@@ -3,30 +3,65 @@
 """Implementation the command line interface needed for ERMLP."""
 
 from pykeen.cli.utils.cli_print_msg_helper import (
-    print_batch_size_message, print_embedding_dimension_info_message, print_hpo_batch_sizes_message,
-    print_hpo_embedding_dimensions_message, print_hpo_epochs_message, print_hpo_learning_rates_message,
-    print_hpo_margin_losses_message, print_learning_rate_message, print_number_epochs_message, print_section_divider,
-    print_training_embedding_dimension_message, print_training_margin_loss_message,
+    print_batch_size_message,
+    print_embedding_dimension_info_message,
+    print_hpo_batch_sizes_message,
+    print_hpo_embedding_dimensions_message,
+    print_hpo_epochs_message,
+    print_hpo_learning_rates_message,
+    print_hpo_margin_losses_message,
+    print_learning_rate_message,
+    print_number_epochs_message,
+    print_section_divider,
+    print_training_embedding_dimension_message,
+    print_training_margin_loss_message,
 )
 from pykeen.cli.utils.cli_query_helper import (
-    select_float_value, select_float_values, select_integer_value, select_positive_integer_values,
+    select_float_value,
+    select_float_values,
+    select_integer_value,
+    select_positive_integer_values,
 )
 from pykeen.constants import (
-    BATCH_SIZE, BATCH_SIZES_ERROR_MSG, BATCH_SIZES_PRINT_MSG, BATCH_SIZES_PROMPT_MSG,
-    BATCH_SIZE_ERROR_MSG, BATCH_SIZE_PRINT_MSG, BATCH_SIZE_PROMPT_MSG, EMBEDDING_DIM, EMBEDDING_DIMENSIONS_ERROR_MSG,
-    EMBEDDING_DIMENSIONS_PRINT_MSG, EMBEDDING_DIMENSIONS_PROMPT_MSG, EMBEDDING_DIMENSION_ERROR_MSG,
-    EMBEDDING_DIMENSION_PRINT_MSG, EMBEDDING_DIMENSION_PROMPT_MSG, EPOCHS_ERROR_MSG, EPOCHS_PRINT_MSG,
-    EPOCHS_PROMPT_MSG, EPOCH_ERROR_MSG, EPOCH_PRINT_MSG, EPOCH_PROMPT_MSG, LEARNING_RATE, LEARNING_RATES_ERROR_MSG,
-    LEARNING_RATES_PRINT_MSG, LEARNING_RATES_PROMPT_MSG, LEARNING_RATE_ERROR_MSG, LEARNING_RATE_PRINT_MSG,
-    LEARNING_RATE_PROMPT_MSG, MARGIN_LOSS, MARGIN_LOSSES_ERROR_MSG, MARGIN_LOSSES_PRINT_MSG, MARGIN_LOSSES_PROMPT_MSG,
-    MARGIN_LOSS_ERROR_MSG, MARGIN_LOSS_PRINT_MSG, MARGIN_LOSS_PROMPT_MSG, NUM_EPOCHS,
+    BATCH_SIZE,
+    BATCH_SIZES_ERROR_MSG,
+    BATCH_SIZES_PRINT_MSG,
+    BATCH_SIZES_PROMPT_MSG,
+    BATCH_SIZE_ERROR_MSG,
+    BATCH_SIZE_PRINT_MSG,
+    BATCH_SIZE_PROMPT_MSG,
+    EMBEDDING_DIM,
+    EMBEDDING_DIMENSIONS_ERROR_MSG,
+    EMBEDDING_DIMENSIONS_PRINT_MSG,
+    EMBEDDING_DIMENSIONS_PROMPT_MSG,
+    EMBEDDING_DIMENSION_ERROR_MSG,
+    EMBEDDING_DIMENSION_PRINT_MSG,
+    EMBEDDING_DIMENSION_PROMPT_MSG,
+    EPOCHS_ERROR_MSG,
+    EPOCHS_PRINT_MSG,
+    EPOCHS_PROMPT_MSG,
+    EPOCH_ERROR_MSG,
+    EPOCH_PRINT_MSG,
+    EPOCH_PROMPT_MSG,
+    LEARNING_RATE,
+    LEARNING_RATES_ERROR_MSG,
+    LEARNING_RATES_PRINT_MSG,
+    LEARNING_RATES_PROMPT_MSG,
+    LEARNING_RATE_ERROR_MSG,
+    LEARNING_RATE_PRINT_MSG,
+    LEARNING_RATE_PROMPT_MSG,
+    MARGIN_LOSS,
+    MARGIN_LOSSES_ERROR_MSG,
+    MARGIN_LOSSES_PRINT_MSG,
+    MARGIN_LOSSES_PROMPT_MSG,
+    MARGIN_LOSS_ERROR_MSG,
+    MARGIN_LOSS_PRINT_MSG,
+    MARGIN_LOSS_PROMPT_MSG,
+    NUM_EPOCHS,
 )
 from pykeen.utilities.summarize import get_config_dict
 
-__all__ = [
-    'configure_ermlp_hpo_pipeline',
-    'configure_ermlp_training_pipeline',
-]
+__all__ = ["configure_ermlp_hpo_pipeline", "configure_ermlp_training_pipeline"]
 
 
 def configure_ermlp_training_pipeline(model_name: str):
@@ -44,7 +79,7 @@ def configure_ermlp_training_pipeline(model_name: str):
     embedding_dimension = select_integer_value(
         print_msg=EMBEDDING_DIMENSION_PRINT_MSG,
         prompt_msg=EMBEDDING_DIMENSION_PROMPT_MSG,
-        error_msg=EMBEDDING_DIMENSION_ERROR_MSG
+        error_msg=EMBEDDING_DIMENSION_ERROR_MSG,
     )
     config[EMBEDDING_DIM] = embedding_dimension
     print_section_divider()
@@ -54,7 +89,7 @@ def configure_ermlp_training_pipeline(model_name: str):
     magin_loss = select_float_value(
         print_msg=MARGIN_LOSS_PRINT_MSG,
         prompt_msg=MARGIN_LOSS_PROMPT_MSG,
-        error_msg=MARGIN_LOSS_ERROR_MSG
+        error_msg=MARGIN_LOSS_ERROR_MSG,
     )
     config[MARGIN_LOSS] = magin_loss
     print_section_divider()
@@ -64,7 +99,7 @@ def configure_ermlp_training_pipeline(model_name: str):
     learning_rate = select_float_value(
         print_msg=LEARNING_RATE_PRINT_MSG,
         prompt_msg=LEARNING_RATE_PROMPT_MSG,
-        error_msg=LEARNING_RATE_ERROR_MSG
+        error_msg=LEARNING_RATE_ERROR_MSG,
     )
     config[LEARNING_RATE] = learning_rate
     print_section_divider()
@@ -74,7 +109,7 @@ def configure_ermlp_training_pipeline(model_name: str):
     batch_size = select_integer_value(
         print_msg=BATCH_SIZE_PRINT_MSG,
         prompt_msg=BATCH_SIZE_PROMPT_MSG,
-        error_msg=BATCH_SIZE_ERROR_MSG
+        error_msg=BATCH_SIZE_ERROR_MSG,
     )
     config[BATCH_SIZE] = batch_size
     print_section_divider()
@@ -84,7 +119,7 @@ def configure_ermlp_training_pipeline(model_name: str):
     number_epochs = select_integer_value(
         print_msg=EPOCH_PRINT_MSG,
         prompt_msg=EPOCH_PROMPT_MSG,
-        error_msg=EPOCH_ERROR_MSG
+        error_msg=EPOCH_ERROR_MSG,
     )
     config[NUM_EPOCHS] = number_epochs
     print_section_divider()
@@ -97,9 +132,11 @@ def configure_ermlp_hpo_pipeline(model_name: str):
 
     # Step 1: Query embedding dimensions
     print_hpo_embedding_dimensions_message()
-    embedding_dimensions = select_positive_integer_values(EMBEDDING_DIMENSIONS_PRINT_MSG,
-                                                          EMBEDDING_DIMENSIONS_PROMPT_MSG,
-                                                          EMBEDDING_DIMENSIONS_ERROR_MSG)
+    embedding_dimensions = select_positive_integer_values(
+        EMBEDDING_DIMENSIONS_PRINT_MSG,
+        EMBEDDING_DIMENSIONS_PROMPT_MSG,
+        EMBEDDING_DIMENSIONS_ERROR_MSG,
+    )
     config[EMBEDDING_DIM] = embedding_dimensions
     print_section_divider()
 
@@ -108,7 +145,8 @@ def configure_ermlp_hpo_pipeline(model_name: str):
     magin_loss = select_float_values(
         print_msg=MARGIN_LOSSES_PRINT_MSG,
         prompt_msg=MARGIN_LOSSES_PROMPT_MSG,
-        error_msg=MARGIN_LOSSES_ERROR_MSG)
+        error_msg=MARGIN_LOSSES_ERROR_MSG,
+    )
 
     config[MARGIN_LOSS] = magin_loss
     print_section_divider()
@@ -118,7 +156,8 @@ def configure_ermlp_hpo_pipeline(model_name: str):
     learning_rate = select_float_values(
         print_msg=LEARNING_RATES_PRINT_MSG,
         prompt_msg=LEARNING_RATES_PROMPT_MSG,
-        error_msg=LEARNING_RATES_ERROR_MSG)
+        error_msg=LEARNING_RATES_ERROR_MSG,
+    )
     config[LEARNING_RATE] = learning_rate
     print_section_divider()
 
@@ -127,7 +166,8 @@ def configure_ermlp_hpo_pipeline(model_name: str):
     batch_sizes = select_positive_integer_values(
         print_msg=BATCH_SIZES_PRINT_MSG,
         prompt_msg=BATCH_SIZES_PROMPT_MSG,
-        error_msg=BATCH_SIZES_ERROR_MSG)
+        error_msg=BATCH_SIZES_ERROR_MSG,
+    )
     config[BATCH_SIZE] = batch_sizes
     print_section_divider()
 
@@ -136,7 +176,8 @@ def configure_ermlp_hpo_pipeline(model_name: str):
     number_epochs = select_positive_integer_values(
         print_msg=EPOCHS_PRINT_MSG,
         prompt_msg=EPOCHS_PROMPT_MSG,
-        error_msg=EPOCHS_ERROR_MSG)
+        error_msg=EPOCHS_ERROR_MSG,
+    )
     config[NUM_EPOCHS] = number_epochs
     print_section_divider()
 

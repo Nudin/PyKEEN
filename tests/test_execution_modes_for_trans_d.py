@@ -3,12 +3,17 @@
 """Test training and HPO mode for TransD."""
 
 import pykeen.constants as pkc
-from tests.constants import BaseTestTrainingMode, set_training_mode_specific_parameters, \
-    set_hpo_mode_specific_parameters, set_evaluation_specific_parameters
+from tests.constants import (
+    BaseTestTrainingMode,
+    set_training_mode_specific_parameters,
+    set_hpo_mode_specific_parameters,
+    set_evaluation_specific_parameters,
+)
 
 
 class TestTrainingModeForTransD(BaseTestTrainingMode):
     """Test that TransD can be trained and evaluated correctly in training mode."""
+
     config = BaseTestTrainingMode.config
     config = set_training_mode_specific_parameters(config=config)
     config[pkc.KG_EMBEDDING_MODEL_NAME] = pkc.TRANS_D_NAME
@@ -33,6 +38,7 @@ class TestTrainingModeForTransD(BaseTestTrainingMode):
 
 class TestHPOModeForTransD(BaseTestTrainingMode):
     """Test that TransD can be trained and evaluated correctly in HPO mode."""
+
     config = BaseTestTrainingMode.config
     config = set_training_mode_specific_parameters(config=config)
     config[pkc.KG_EMBEDDING_MODEL_NAME] = pkc.TRANS_D_NAME

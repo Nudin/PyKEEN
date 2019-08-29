@@ -11,7 +11,7 @@ from torch import nn
 from pykeen.constants import ERMLP_NAME
 from pykeen.kge_models.base import BaseModule, slice_triples
 
-__all__ = ['ERMLP']
+__all__ = ["ERMLP"]
 
 
 class ERMLP(BaseModule):
@@ -26,13 +26,14 @@ class ERMLP(BaseModule):
     model_name = ERMLP_NAME
     margin_ranking_loss_size_average: bool = True
 
-    def __init__(self,
-                 margin_loss: float,
-                 embedding_dim: int,
-                 random_seed: Optional[int] = None,
-                 preferred_device: str = 'cpu',
-                 **kwargs
-                 ) -> None:
+    def __init__(
+        self,
+        margin_loss: float,
+        embedding_dim: int,
+        random_seed: Optional[int] = None,
+        preferred_device: str = "cpu",
+        **kwargs
+    ) -> None:
         super().__init__(margin_loss, embedding_dim, random_seed, preferred_device)
 
         """The mulit layer perceptron consisting of an input layer with 3 * self.embedding_dim neurons, a  hidden layer
@@ -55,7 +56,9 @@ class ERMLP(BaseModule):
     def predict(self, triples):
         # Check if the model has been fitted yet.
         if self.entity_embeddings is None:
-            print('The model has not been fitted yet. Predictions are based on randomly initialized embeddings.')
+            print(
+                "The model has not been fitted yet. Predictions are based on randomly initialized embeddings."
+            )
             self._init_embeddings()
 
         triples = torch.tensor(triples, dtype=torch.long, device=self.device)
@@ -65,17 +68,23 @@ class ERMLP(BaseModule):
     def forward(self, positives, negatives):
         positive_scores = self._score_triples(positives)
         negative_scores = self._score_triples(negatives)
-        loss = self._compute_loss(positive_scores=positive_scores, negative_scores=negative_scores)
+        loss = self._compute_loss(
+            positive_scores=positive_scores, negative_scores=negative_scores
+        )
         return loss
 
     def _score_triples(self, triples):
-        head_embeddings, relation_embeddings, tail_embeddings = self._get_triple_embeddings(triples)
-        scores = self._compute_scores(head_embeddings, relation_embeddings, tail_embeddings)
+        head_embeddings, relation_embeddings, tail_embeddings = self._get_triple_embeddings(
+            triples
+        )
+        scores = self._compute_scores(
+            head_embeddings, relation_embeddings, tail_embeddings
+        )
         return scores
 
     def _compute_scores(self, head_embeddings, relation_embeddings, tail_embeddings):
         x_s = torch.cat([head_embeddings, relation_embeddings, tail_embeddings], 1)
-        scores = - self.mlp(x_s)
+        scores = -self.mlp(x_s)
         return scores
 
     def _get_triple_embeddings(self, triples):

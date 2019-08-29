@@ -7,13 +7,14 @@ from typing import Dict, Mapping
 import torch.optim as optim
 
 from pykeen.constants import (
-    ADAGRAD_OPTIMIZER_NAME, ADAM_OPTIMIZER_NAME, LEARNING_RATE, OPTMIZER_NAME, SGD_OPTIMIZER_NAME,
+    ADAGRAD_OPTIMIZER_NAME,
+    ADAM_OPTIMIZER_NAME,
+    LEARNING_RATE,
+    OPTMIZER_NAME,
+    SGD_OPTIMIZER_NAME,
 )
 
-__all__ = [
-    'OPTIMIZERS',
-    'get_optimizer',
-]
+__all__ = ["OPTIMIZERS", "get_optimizer"]
 
 OPTIMIZERS: Mapping = {
     SGD_OPTIMIZER_NAME: optim.SGD,
@@ -28,7 +29,7 @@ def get_optimizer(config: Dict, kge_model):
     optimizer_cls = OPTIMIZERS.get(optimizer_name)
 
     if optimizer_cls is None:
-        raise ValueError(f'invalid optimizer name: {optimizer_name}')
+        raise ValueError(f"invalid optimizer name: {optimizer_name}")
 
     parameters = filter(lambda p: p.requires_grad, kge_model.parameters())
 
