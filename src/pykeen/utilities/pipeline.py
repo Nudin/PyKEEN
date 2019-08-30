@@ -89,8 +89,6 @@ class Pipeline(object):
                     None,
                 )
 
-            all_entities = np.array(list(self.entity_label_to_id.values()))
-
             # Initialize KG embedding model
             self.config[pkc.PREFERRED_DEVICE] = (
                 pkc.CPU if self.device_name == pkc.CPU else pkc.GPU

@@ -292,7 +292,6 @@ class BaseModule(nn.Module):
 
         loss_per_epoch = []
         num_pos_triples = pos_triples.shape[0]
-        all_entities = np.arange(self.num_entities)
 
         start_training = timeit.default_timer()
 
@@ -314,11 +313,7 @@ class BaseModule(nn.Module):
                 current_batch_size = len(pos_batch)
 
                 neg_batch = negative_sample(
-                    self.neg_sampling,
-                    current_batch_size,
-                    pos_batch,
-                    self.num_entities,
-                    all_entities,
+                    self.neg_sampling, current_batch_size, pos_batch, self.num_entities
                 )
 
                 pos_batch = torch.tensor(
