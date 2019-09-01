@@ -307,14 +307,16 @@ class BaseModule(nn.Module):
             pos_batches = _split_list_in_batches(
                 input_list=pos_triples, batch_size=num_positives
             )
+            neg_triples = negative_sample(
+                self.neg_sampling, len(pos_triples), pos_triples, self.num_entities
+            )
+            neg_batches = _split_list_in_batches(
+                input_list=neg_triples, batch_size=num_positives
+            )
             current_epoch_loss = 0.0
 
-            for _, pos_batch in enumerate(pos_batches):
+            for pos_batch, neg_batch in zip(pos_batches, neg_batches):
                 current_batch_size = len(pos_batch)
-
-                neg_batch = negative_sample(
-                    self.neg_sampling, current_batch_size, pos_batch, self.num_entities
-                )
 
                 pos_batch = torch.tensor(
                     pos_batch, dtype=torch.long, device=self.device
