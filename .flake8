@@ -22,6 +22,7 @@ ignore =
     D107
     # line break before binary operator
     W503
+    E203
 exclude =
     .tox,
     .git,

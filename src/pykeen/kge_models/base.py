@@ -28,7 +28,7 @@ from pykeen.utilities.triples_creation_utils import (
 from torch import nn
 from tqdm import trange
 
-from .negative_sampling import SamplingStrategy, negative_sample
+from .negative_sampling import NegativeSampler, SamplingStrategy
 
 __all__ = ["BaseModule"]
 
@@ -293,6 +293,8 @@ class BaseModule(nn.Module):
         loss_per_epoch = []
         num_pos_triples = pos_triples.shape[0]
 
+        neg_sampler = NegativeSampler(self.neg_sampling, pos_triples, self.num_entities)
+
         start_training = timeit.default_timer()
 
         _tqdm_kwargs = dict(desc="Training epoch")
@@ -312,9 +314,7 @@ class BaseModule(nn.Module):
             for _, pos_batch in enumerate(pos_batches):
                 current_batch_size = len(pos_batch)
 
-                neg_batch = negative_sample(
-                    self.neg_sampling, current_batch_size, pos_batch, self.num_entities
-                )
+                neg_batch = neg_sampler.sample(current_batch_size, pos_batch)
 
                 pos_batch = torch.tensor(
                     pos_batch, dtype=torch.long, device=self.device
