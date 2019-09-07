@@ -291,7 +291,6 @@ class BaseModule(nn.Module):
         log.info(f"****Run Model On {str(self.device).upper()}****")
 
         loss_per_epoch = []
-        num_pos_triples = pos_triples.shape[0]
 
         neg_sampler = NegativeSampler(self.neg_sampling, pos_triples, self.num_entities)
 
@@ -302,16 +301,13 @@ class BaseModule(nn.Module):
             _tqdm_kwargs.update(tqdm_kwargs)
 
         for epoch in trange(self.num_epochs, **_tqdm_kwargs):
-            indices = np.arange(num_pos_triples)
-            np.random.shuffle(indices)
-            pos_triples = pos_triples[indices]
-            num_positives = self.batch_size // 2
+            np.random.shuffle(pos_triples)
             pos_batches = _split_list_in_batches(
-                input_list=pos_triples, batch_size=num_positives
+                input_list=pos_triples, batch_size=self.batch_size // 2
             )
             current_epoch_loss = 0.0
 
-            for _, pos_batch in enumerate(pos_batches):
+            for pos_batch in pos_batches:
                 current_batch_size = len(pos_batch)
 
                 neg_batch = neg_sampler.sample(current_batch_size, pos_batch)
