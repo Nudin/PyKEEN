@@ -43,9 +43,7 @@ class NegativeSampler:
         """
         Replace object or subject of positive triples with random entities.
         """
-        batch_subjs, batch_relations, batch_objs = slice_triples(
-            pos_batch, nested=False
-        )
+        batch_subjs, batch_relations, batch_objs = slice_triples(pos_batch)
         num_subj_corrupt = num // 2
         num_obj_corrupt = num - num_subj_corrupt
 
@@ -77,9 +75,7 @@ class NegativeSampler:
         that are also used as subject/object for the used relation at some
         positive sample.
         """
-        batch_subjs, batch_relations, batch_objs = slice_triples(
-            pos_batch, nested=False
-        )
+        batch_subjs, batch_relations, batch_objs = slice_triples(pos_batch)
         num_subj_corrupt = num // 2
         num_obj_corrupt = num - num_subj_corrupt
         num_pos = len(pos_batch)
@@ -108,9 +104,7 @@ class NegativeSampler:
         The chance of an entity getting chosen are the bigger the more often
         they are found in positive triples.
         """
-        batch_subjs, batch_relations, batch_objs = slice_triples(
-            pos_batch, nested=False
-        )
+        batch_subjs, batch_relations, batch_objs = slice_triples(pos_batch)
         num_subj_corrupt = num // 2
         num_obj_corrupt = num - num_subj_corrupt
         num_pos = len(pos_batch)

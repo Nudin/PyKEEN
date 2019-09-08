@@ -96,9 +96,7 @@ class TransD(BaseModule):
     def _score_triples(self, triples):
         heads, relations, tails = slice_triples(triples)
 
-        h_embs = self._get_entity_embeddings(heads)
-        r_embs = self._get_relation_embeddings(relations)
-        t_embs = self._get_entity_embeddings(tails)
+        h_embs, r_embs, t_embs = self._get_triple_embeddings(triples)
 
         h_proj_vec_embs = self._get_entity_projections(heads)
         r_projs_embs = self._get_relation_projections(relations)
@@ -129,12 +127,7 @@ class TransD(BaseModule):
         return projected_entity_embs
 
     def _get_entity_projections(self, entities):
-        return self.entity_projections(entities).view(-1, self.embedding_dim)
-
-    def _get_relation_embeddings(self, relations):
-        return self.relation_embeddings(relations).view(-1, self.relation_embedding_dim)
+        return self.entity_projections(entities)
 
     def _get_relation_projections(self, relations):
-        return self.relation_projections(relations).view(
-            -1, self.relation_embedding_dim
-        )
+        return self.relation_projections(relations)

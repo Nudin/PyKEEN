@@ -141,9 +141,7 @@ class StructuredEmbedding(BaseModule):
 
     def _compute_scores(self, projected_head_embeddings, projected_tail_embeddings):
         difference = projected_head_embeddings - projected_tail_embeddings
-        distances = torch.norm(difference, dim=1, p=self.scoring_fct_norm).view(
-            size=(-1,)
-        )
+        distances = torch.norm(difference, dim=1, p=self.scoring_fct_norm)
         return distances
 
     def _project_entities(self, entity_embeddings, relation_embeddings):
@@ -152,11 +150,7 @@ class StructuredEmbedding(BaseModule):
         return projected_entity_embs
 
     def _get_left_relation_embeddings(self, relations):
-        return self.left_relation_embeddings(relations).view(
-            -1, self.embedding_dim, self.embedding_dim
-        )
+        return self.left_relation_embeddings(relations)
 
     def _get_right_relation_embeddings(self, relations):
-        return self.right_relation_embeddings(relations).view(
-            -1, self.embedding_dim, self.embedding_dim
-        )
+        return self.right_relation_embeddings(relations)

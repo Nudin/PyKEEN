@@ -132,14 +132,14 @@ class BaseModule(nn.Module):
 
     def load_triples(self, data_paths: Union[str, Iterable[str]]):
         """
-        Loads triples from files given their paths, creates mappings and returns the mapped triples
+        Loads triples from files given their paths, creates mappings and
+        returns the mapped triples
         :param data_paths: The paths for all files that are going to be used for training and testing
         :return: List where each items represents the mapped triples of a file
         """
 
         if isinstance(data_paths, str):
-            triples = load_data(data_paths)
-            all_triples = triples
+            all_triples = load_data(data_paths)
             self.entity_label_to_id, self.relation_label_to_id = create_mappings(
                 triples=all_triples
             )
@@ -156,7 +156,7 @@ class BaseModule(nn.Module):
             )
             mapped_triples = [
                 create_mapped_triples(
-                    triples,
+                    triples=triples,
                     entity_label_to_id=self.entity_label_to_id,
                     relation_label_to_id=self.relation_label_to_id,
                 )[0]
@@ -176,9 +176,9 @@ class BaseModule(nn.Module):
         """
 
         if isinstance(data_paths, str):
-            triples = load_data(data_paths)
+            all_triples = load_data(data_paths)
             mapped_triples, _, _ = create_mapped_triples(
-                triples=triples,
+                triples=all_triples,
                 entity_label_to_id=self.entity_label_to_id,
                 relation_label_to_id=self.relation_label_to_id,
             )
@@ -212,10 +212,10 @@ class BaseModule(nn.Module):
         )
 
     def _get_entity_embeddings(self, entities):
-        return self.entity_embeddings(entities).view(-1, self.embedding_dim)
+        return self.entity_embeddings(entities)
 
     def _get_relation_embeddings(self, relations):
-        return self.relation_embeddings(relations).view(-1, self.embedding_dim)
+        return self.relation_embeddings(relations)
 
     def predict_object(self, subject: str, relation) -> str:
         """"""
