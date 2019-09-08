@@ -43,30 +43,28 @@ class NegativeSampler:
         """
         Replace object or subject of positive triples with random entities.
         """
-        batch_subjs, batch_relations, batch_objs = slice_triples(pos_batch)
+        batch_subjs, batch_relations, batch_objs = slice_triples(
+            pos_batch, nested=False
+        )
         num_subj_corrupt = num // 2
         num_obj_corrupt = num - num_subj_corrupt
 
         corrupted_subjects = np.random.choice(self.num_entities, size=num_subj_corrupt)
-        corrupted_subjects = np.reshape(corrupted_subjects, newshape=(-1, 1))
-        subject_based_corrupted_triples = np.concatenate(
-            [
+        subject_based_corrupted_triples = np.column_stack(
+            (
                 corrupted_subjects,
                 batch_relations[:num_subj_corrupt],
                 batch_objs[:num_subj_corrupt],
-            ],
-            axis=1,
+            )
         )
 
         corrupted_objects = np.random.choice(self.num_entities, size=num_obj_corrupt)
-        corrupted_objects = np.reshape(corrupted_objects, newshape=(-1, 1))
-        object_based_corrupted_triples = np.concatenate(
-            [
+        object_based_corrupted_triples = np.column_stack(
+            (
                 batch_subjs[num_subj_corrupt:],
                 batch_relations[num_subj_corrupt:],
                 corrupted_objects,
-            ],
-            axis=1,
+            )
         )
 
         return np.concatenate(
@@ -79,24 +77,24 @@ class NegativeSampler:
         that are also used as subject/object for the used relation at some
         positive sample.
         """
-        batch_subjs, batch_relations, batch_objs = slice_triples(pos_batch)
+        batch_subjs, batch_relations, batch_objs = slice_triples(
+            pos_batch, nested=False
+        )
         num_subj_corrupt = num // 2
         num_obj_corrupt = num - num_subj_corrupt
         num_pos = len(pos_batch)
 
         subject_based_corrupted_triples = []
         for i in range(num_subj_corrupt):
-            relation = batch_relations[i % num_pos][0]
+            relation = batch_relations[i % num_pos]
             subject = np.random.choice(self.subjects_by_relation[relation][0])
-            subject_based_corrupted_triples.append(
-                [subject, relation, batch_objs[i][0]]
-            )
+            subject_based_corrupted_triples.append([subject, relation, batch_objs[i]])
 
         object_based_corrupted_triples = []
         for i in range(num_obj_corrupt):
-            relation = batch_relations[i % num_pos][0]
+            relation = batch_relations[i % num_pos]
             obj = np.random.choice(self.objects_by_relation[relation][0])
-            object_based_corrupted_triples.append([batch_subjs[i][0], relation, obj])
+            object_based_corrupted_triples.append([batch_subjs[i], relation, obj])
 
         return np.concatenate(
             [subject_based_corrupted_triples, object_based_corrupted_triples], axis=0
@@ -110,26 +108,26 @@ class NegativeSampler:
         The chance of an entity getting chosen are the bigger the more often
         they are found in positive triples.
         """
-        batch_subjs, batch_relations, batch_objs = slice_triples(pos_batch)
+        batch_subjs, batch_relations, batch_objs = slice_triples(
+            pos_batch, nested=False
+        )
         num_subj_corrupt = num // 2
         num_obj_corrupt = num - num_subj_corrupt
         num_pos = len(pos_batch)
 
         subject_based_corrupted_triples = []
         for i in range(num_subj_corrupt):
-            relation = batch_relations[i % num_pos][0]
+            relation = batch_relations[i % num_pos]
             e, w = self.subjects_by_relation[relation]
             subject = np.random.choice(e, p=w)
-            subject_based_corrupted_triples.append(
-                [subject, relation, batch_objs[i][0]]
-            )
+            subject_based_corrupted_triples.append([subject, relation, batch_objs[i]])
 
         object_based_corrupted_triples = []
         for i in range(num_obj_corrupt):
-            relation = batch_relations[i % num_pos][0]
+            relation = batch_relations[i % num_pos]
             e, w = self.objects_by_relation[relation]
             obj = np.random.choice(e, p=w)
-            object_based_corrupted_triples.append([batch_subjs[i][0], relation, obj])
+            object_based_corrupted_triples.append([batch_subjs[i], relation, obj])
 
         return np.concatenate(
             [subject_based_corrupted_triples, object_based_corrupted_triples], axis=0
