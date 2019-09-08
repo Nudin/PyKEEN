@@ -29,6 +29,7 @@ from torch import nn
 from tqdm import trange
 
 from .negative_sampling import NegativeSampler, SamplingStrategy
+from .utils import slice_triples
 
 __all__ = ["BaseModule"]
 
@@ -89,6 +90,7 @@ class BaseModule(nn.Module):
 
         # Calling fit function
         self.entity_embeddings = None
+        self.relation_embeddings = None
         self.learning_rate = None
         self.num_epochs = None
         self.batch_size = None
@@ -96,9 +98,6 @@ class BaseModule(nn.Module):
     def __init_subclass__(cls, **kwargs):  # noqa: D105
         if not getattr(cls, "model_name", None):
             raise TypeError("missing model_name class attribute")
-
-    def _get_entity_embeddings(self, entities):
-        return self.entity_embeddings(entities).view(-1, self.embedding_dim)
 
     def _get_device(self, device: str = "cpu") -> None:
         """Get the Torch device to use."""
@@ -203,6 +202,20 @@ class BaseModule(nn.Module):
             max_norm=self.entity_embedding_max_norm,
             norm_type=self.entity_embedding_norm_type,
         )
+
+    def _get_triple_embeddings(self, triples):
+        heads, relations, tails = slice_triples(triples)
+        return (
+            self._get_entity_embeddings(heads),
+            self._get_relation_embeddings(relations),
+            self._get_entity_embeddings(tails),
+        )
+
+    def _get_entity_embeddings(self, entities):
+        return self.entity_embeddings(entities).view(-1, self.embedding_dim)
+
+    def _get_relation_embeddings(self, relations):
+        return self.relation_embeddings(relations).view(-1, self.embedding_dim)
 
     def predict_object(self, subject: str, relation) -> str:
         """"""

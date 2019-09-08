@@ -8,7 +8,6 @@ import torch
 import torch.autograd
 from pykeen.constants import RESCAL_NAME, SCORING_FUNCTION_NORM
 from pykeen.kge_models.base import BaseModule
-from .utils import slice_triples
 from torch import nn
 
 __all__ = ["RESCAL"]
@@ -58,7 +57,6 @@ class RESCAL(BaseModule):
             )
             self._init_embeddings()
 
-        # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
         scores = self._score_triples(triples)
         return scores.detach().cpu().numpy()
 
@@ -71,13 +69,7 @@ class RESCAL(BaseModule):
         return loss
 
     def _score_triples(self, triples):
-        head_embeddings, relation_embeddings, tail_embeddings = self._get_triple_embeddings(
-            triples
-        )
-        scores = self._compute_scores(
-            head_embeddings, relation_embeddings, tail_embeddings
-        )
-        return scores
+        return self._compute_scores(*self._get_triple_embeddings(triples))
 
     def _compute_scores(self, h_embs, r_embs, t_embs):
         # Compute score and transform result to 1D tensor
@@ -92,14 +84,3 @@ class RESCAL(BaseModule):
         # scores = score.view(-1, 1)
 
         return scores
-
-    def _get_triple_embeddings(self, triples):
-        heads, relations, tails = slice_triples(triples)
-        return (
-            self._get_entity_embeddings(heads),
-            self._get_relation_embeddings(relations),
-            self._get_entity_embeddings(tails),
-        )
-
-    def _get_relation_embeddings(self, relations):
-        return self.relation_embeddings(relations).view(-1, self.embedding_dim)

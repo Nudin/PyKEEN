@@ -70,7 +70,6 @@ class UnstructuredModel(BaseModule):
             )
             self._init_embeddings()
 
-        # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
         scores = self._score_triples(triples)
         return scores.detach().cpu().numpy()
 
@@ -84,11 +83,7 @@ class UnstructuredModel(BaseModule):
         return loss
 
     def _score_triples(self, triples):
-        head_embeddings, tail_embeddings = self._get_triple_embeddings(triples)
-        scores = self._compute_scores(
-            head_embeddings=head_embeddings, tail_embeddings=tail_embeddings
-        )
-        return scores
+        return self._compute_scores(*self._get_triple_embeddings(triples))
 
     def _compute_scores(self, head_embeddings, tail_embeddings):
         # Add the vector element wise
@@ -100,9 +95,6 @@ class UnstructuredModel(BaseModule):
     def _get_triple_embeddings(self, triples):
         heads, tails = self.slice_triples(triples)
         return (self._get_entity_embeddings(heads), self._get_entity_embeddings(tails))
-
-    def _get_entity_embeddings(self, entities):
-        return self.entity_embeddings(entities).view(-1, self.embedding_dim)
 
     @staticmethod
     def slice_triples(triples):

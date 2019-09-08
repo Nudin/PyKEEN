@@ -122,7 +122,6 @@ class TransR(BaseModule):
             )
             self._init_embeddings()
 
-        # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
         heads = triples[:, 0:1]
         relations = triples[:, 1:2]
         tails = triples[:, 2:3]

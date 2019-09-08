@@ -9,9 +9,10 @@ import torch
 import torch.autograd
 from pykeen.constants import RELATION_EMBEDDING_DIM, SCORING_FUNCTION_NORM, TRANS_D_NAME
 from pykeen.kge_models.base import BaseModule
-from .utils import slice_triples
 from torch import nn
 from torch.nn.init import xavier_normal_
+
+from .utils import slice_triples
 
 __all__ = ["TransD"]
 
@@ -81,7 +82,6 @@ class TransD(BaseModule):
             )
             self._init_embeddings()
 
-        # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
         scores = self._score_triples(triples)
         return scores.detach().cpu().numpy()
 

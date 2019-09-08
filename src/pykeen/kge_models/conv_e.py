@@ -130,7 +130,6 @@ class ConvE(BaseModule):
             )
             self._init_embeddings()
 
-        # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
         batch_size = triples.shape[0]
         subject_batch = triples[:, 0:1]
         relation_batch = triples[:, 1:2]

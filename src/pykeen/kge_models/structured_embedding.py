@@ -14,8 +14,9 @@ from pykeen.constants import (
     SE_NAME,
 )
 from pykeen.kge_models.base import BaseModule
-from .utils import slice_triples
 from torch import nn
+
+from .utils import slice_triples
 
 __all__ = ["StructuredEmbedding"]
 
@@ -96,7 +97,6 @@ class StructuredEmbedding(BaseModule):
             )
             self._init_embeddings()
 
-        # triples = torch.tensor(triples, dtype=torch.long, device=self.device)
         scores = self._score_triples(triples)
         return scores.detach().cpu().numpy()
 
