@@ -40,6 +40,18 @@ ERMLP_NAME = "ERMLP"
 CONV_E_NAME = "ConvE"
 RESCAL_NAME = "RESCAL"
 
+# Negative Sampling strategy
+NSS = "negative_sampling_strategy"
+
+# Names of Negative Sampling strategies
+RANDOM = "RANDOM"
+CORRUPTION = "CORRUPTION"
+TYPEDCORRUPTION = "TYPEDCORRUPTION"
+WEIGHTED = "WEIGHTED"
+TYPED = "TYPED"
+NEARMISS = "NEARMISS"
+NEXTNEIGHBOR = "NEXTNEIGHBOR"
+
 # Evaluator
 EVALUATOR = "evaluator"
 MEAN_RANK_EVALUATOR = "MeanRankEvaluator"
@@ -62,6 +74,7 @@ GPU = "gpu"
 
 # ML params
 BATCH_SIZE = "batch_size"
+NUM_NEGS = "num_negs"
 VOCAB_SIZE = "vocab_size"
 EMBEDDING_DIM = "embedding_dim"
 RELATION_EMBEDDING_DIM = "relation_embedding_dim"

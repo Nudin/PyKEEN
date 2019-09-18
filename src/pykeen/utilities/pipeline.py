@@ -12,7 +12,6 @@ import rdflib
 import torch
 from pykeen.hpo import RandomSearch
 from pykeen.kge_models import get_kge_model
-from pykeen.kge_models.negative_sampling import SamplingStrategy
 from pykeen.utilities.evaluation_utils.metrics_computations import (
     MetricResults,
     compute_metric_results,
@@ -84,10 +83,8 @@ class Pipeline(object):
                     self._get_train_and_test_triples()
                 )
             else:
-                mapped_pos_train_triples, mapped_pos_test_triples = (
-                    self._get_train_triples(),
-                    None,
-                )
+                mapped_pos_train_triples = self._get_train_triples()
+                mapped_pos_test_triples = None
 
             # Initialize KG embedding model
             self.config[pkc.PREFERRED_DEVICE] = (
@@ -103,11 +100,13 @@ class Pipeline(object):
             kge_model.relation_label_to_id = self.relation_label_to_id
             kge_model.num_entities = len(self.entity_label_to_id)
             kge_model.num_relations = len(self.relation_label_to_id)
-            kge_model.neg_sampling = SamplingStrategy(
-                self.config.get("negative_sampling_strategy", "CORRUPTION")
-            )
+            kge_model.neg_sampling = self.config.get(pkc.NSS, pkc.CORRUPTION)
 
-            batch_size = self.config[pkc.BATCH_SIZE]
+            batch_size = self.config.get(pkc.BATCH_SIZE, 1)
+            num_negs = self.config.get(pkc.NUM_NEGS, 1)
+            assert num_negs == int(num_negs), "{} has to be an integer, is {}".format(
+                pkc.NUM_NEGS, num_negs
+            )
             num_epochs = self.config[pkc.NUM_EPOCHS]
             learning_rate = self.config[pkc.LEARNING_RATE]
 
@@ -117,6 +116,7 @@ class Pipeline(object):
                 learning_rate=learning_rate,
                 num_epochs=num_epochs,
                 batch_size=batch_size,
+                num_negs=num_negs,
             )
             trained_model = kge_model
 

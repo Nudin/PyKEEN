@@ -13,6 +13,7 @@ import rdflib
 import torch
 import torch.optim as optim
 from pykeen.constants import (
+    CORRUPTION,
     EMBEDDING_DIM,
     GPU,
     LEARNING_RATE,
@@ -28,7 +29,7 @@ from pykeen.utilities.triples_creation_utils import (
 from torch import nn
 from tqdm import trange
 
-from .negative_sampling import NegativeSampler, SamplingStrategy
+from .negative_sampling import NegativeSampler
 from .utils import slice_triples
 
 __all__ = ["BaseModule"]
@@ -43,7 +44,7 @@ class BaseModule(nn.Module):
     entity_embedding_max_norm: Optional[int] = None
     entity_embedding_norm_type: int = 2
     hyper_params = [EMBEDDING_DIM, MARGIN_LOSS, LEARNING_RATE]
-    neg_sampling = SamplingStrategy.CORRUPTION
+    neg_sampling = CORRUPTION
 
     def __init__(
         self,
@@ -126,7 +127,9 @@ class BaseModule(nn.Module):
         self, positive_scores: torch.Tensor, negative_scores: torch.Tensor
     ) -> torch.Tensor:
         y = torch.FloatTensor([-1])
-        y = y.expand(positive_scores.shape[0]).to(self.device)
+        y = y.expand(negative_scores.shape[0]).to(self.device)
+        if self.num_negs > 1:
+            positive_scores = positive_scores.repeat(self.num_negs, self.num_negs)
         loss = self.criterion(positive_scores, negative_scores, y)
         return loss
 
@@ -217,7 +220,7 @@ class BaseModule(nn.Module):
     def _get_relation_embeddings(self, relations):
         return self.relation_embeddings(relations)
 
-    def predict_object(self, subject: str, relation) -> str:
+    def predict_object(self, subject: str, relation: str) -> str:
         """"""
         subject_id = self.entity_label_to_id[subject]
         relation_id = self.relation_label_to_id[relation]
@@ -243,27 +246,7 @@ class BaseModule(nn.Module):
 
     def predict_subject(self, obj: str, relation: str) -> str:
         """"""
-        object_id = self.entity_label_to_id[obj]
-        relation_id = self.relation_label_to_id[relation]
-        subject_ids = np.array(list(self.entity_label_to_id.values()))
-        subject_values = np.array(list(self.entity_label_to_id.keys()))
-        # Filter the subject out of the entity
-        indexing = subject_ids == object_id
-        subject_ids = subject_ids[~(indexing)]
-        subject_values = subject_values[~(indexing)]
-        object_ids = np.full_like(subject_ids, object_id)
-        relation_ids = np.full_like(subject_ids, relation_id)
-        triples = np.vstack((subject_ids, relation_ids, object_ids)).T
-
-        scores = self.predict(
-            torch.tensor(triples, dtype=torch.long, device=self.device)
-        )
-
-        best_subject_arg = scores.argmin()
-
-        best_subject = subject_values[best_subject_arg]
-
-        return best_subject
+        return self.predict_object(obj, relation)
 
     def fit(
         self,
@@ -271,6 +254,7 @@ class BaseModule(nn.Module):
         learning_rate: float,
         num_epochs: int,
         batch_size: int,
+        num_negs: int = 1,
         optimizer: Optional[torch.optim.Optimizer] = None,
         tqdm_kwargs: Optional[Mapping[str, Any]] = None,
     ) -> List[float]:
@@ -280,6 +264,7 @@ class BaseModule(nn.Module):
         :param learning_rate: Learning rate for the optimizer
         :param num_epochs: Number of epochs to train
         :param batch_size: Batch size for training
+        :param num_negs: Numbers of negative samples to generate per positive sample
         :param optimizer: Pytorch optimizer class to use for training
         :param tqdm_kwargs: Keyword arguments that should be used for the tdqm.trange class
         :return: loss_per_epoch: The loss of each epoch during training
@@ -291,6 +276,7 @@ class BaseModule(nn.Module):
         self.learning_rate = learning_rate
         self.num_epochs = num_epochs
         self.batch_size = batch_size
+        self.num_negs = num_negs
 
         if optimizer is None:
             # Initialize the standard optimizer with the correct parameters
@@ -323,7 +309,7 @@ class BaseModule(nn.Module):
             for pos_batch in pos_batches:
                 current_batch_size = len(pos_batch)
 
-                neg_batch = neg_sampler.sample(current_batch_size, pos_batch)
+                neg_batch = neg_sampler.sample(pos_batch, self.num_negs)
 
                 pos_batch = torch.tensor(
                     pos_batch, dtype=torch.long, device=self.device
