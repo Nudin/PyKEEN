@@ -1,4 +1,5 @@
 from enum import Enum
+from itertools import repeat
 
 import numpy as np
 from pykeen.constants import CORRUPTION, RANDOM, TYPEDCORRUPTION, WEIGHTED
@@ -21,13 +22,9 @@ class NegativeSampler:
         if strategy == CORRUPTION:
             self.sample = self.random_corruption
         elif strategy == TYPEDCORRUPTION:
-            self.subjects_by_relation = {}
-            self.objects_by_relation = {}
             self.calc_entity_weights()
             self.sample = self.typed_corruption
         elif strategy == WEIGHTED:
-            self.subjects_by_relation = {}
-            self.objects_by_relation = {}
             self.calc_entity_weights()
             self.sample = self.weighted_corruption
         else:
@@ -82,21 +79,37 @@ class NegativeSampler:
         num_pos = len(pos_batch)
         num = num_pos * mult
         num_subj_corrupt = num // 2
-        num_obj_corrupt = num - num_subj_corrupt
 
-        subject_based_corrupted_triples = []
-        for i in range(num_subj_corrupt):
-            idx = i % num_pos
-            relation = batch_relations[idx]
-            subject = np.random.choice(self.subjects_by_relation[relation][0])
-            subject_based_corrupted_triples.append([subject, relation, batch_objs[idx]])
-
-        object_based_corrupted_triples = []
-        for i in range(num_obj_corrupt):
-            idx = i % num_pos
-            relation = batch_relations[idx]
-            obj = np.random.choice(self.objects_by_relation[relation][0])
-            object_based_corrupted_triples.append([batch_subjs[idx], relation, obj])
+        corrupted_subjects = np.array(
+            list(
+                map(
+                    np.random.choice,
+                    self.subjects_by_relation[batch_relations[:num_subj_corrupt]][:, 0],
+                )
+            )
+        )
+        subject_based_corrupted_triples = np.column_stack(
+            (
+                corrupted_subjects,
+                batch_relations[:num_subj_corrupt],
+                batch_objs[:num_subj_corrupt],
+            )
+        )
+        corrupted_object = np.array(
+            list(
+                map(
+                    np.random.choice,
+                    self.objects_by_relation[batch_relations[num_subj_corrupt:]][:, 0],
+                )
+            )
+        )
+        object_based_corrupted_triples = np.column_stack(
+            (
+                batch_subjs[num_subj_corrupt:],
+                batch_relations[num_subj_corrupt:],
+                corrupted_object,
+            )
+        )
 
         return np.concatenate(
             [subject_based_corrupted_triples, object_based_corrupted_triples], axis=0
@@ -114,23 +127,44 @@ class NegativeSampler:
         num_pos = len(pos_batch)
         num = num_pos * mult
         num_subj_corrupt = num // 2
-        num_obj_corrupt = num - num_subj_corrupt
 
-        subject_based_corrupted_triples = []
-        for i in range(num_subj_corrupt):
-            idx = i % num_pos
-            relation = batch_relations[idx]
-            e, w = self.subjects_by_relation[relation]
-            subject = np.random.choice(e, p=w)
-            subject_based_corrupted_triples.append([subject, relation, batch_objs[idx]])
+        corrupted_subjects = np.array(
+            list(
+                map(
+                    np.random.choice,
+                    self.subjects_by_relation[batch_relations[:num_subj_corrupt]][:, 0],
+                    repeat(1),
+                    repeat(True),
+                    self.subjects_by_relation[batch_relations][:, 1],
+                )
+            )
+        )
+        subject_based_corrupted_triples = np.column_stack(
+            (
+                corrupted_subjects,
+                batch_relations[:num_subj_corrupt],
+                batch_objs[:num_subj_corrupt],
+            )
+        )
 
-        object_based_corrupted_triples = []
-        for i in range(num_obj_corrupt):
-            idx = i % num_pos
-            relation = batch_relations[idx]
-            e, w = self.objects_by_relation[relation]
-            obj = np.random.choice(e, p=w)
-            object_based_corrupted_triples.append([batch_subjs[idx], relation, obj])
+        corrupted_object = np.array(
+            list(
+                map(
+                    np.random.choice,
+                    self.objects_by_relation[batch_relations[num_subj_corrupt:]][:, 0],
+                    repeat(1),
+                    repeat(True),
+                    self.objects_by_relation[batch_relations][:, 1],
+                )
+            )
+        )
+        object_based_corrupted_triples = np.column_stack(
+            (
+                batch_subjs[num_subj_corrupt:],
+                batch_relations[num_subj_corrupt:],
+                corrupted_object,
+            )
+        )
 
         return np.concatenate(
             [subject_based_corrupted_triples, object_based_corrupted_triples], axis=0
@@ -144,11 +178,15 @@ class NegativeSampler:
         self.objects_by_relation: dict{relation, [list(entities), list (weigths)]}
         """
         relations = self.pos_triples[:, 1:2]
+        subjects_by_relation = {}
+        objects_by_relation = {}
         for relation in np.unique(relations):
             triples = self.pos_triples[self.pos_triples[:, 1] == relation]
             entities, weights = np.unique(triples[:, 0], return_counts=True)
-            self.subjects_by_relation[relation] = [entities, weights / weights.sum()]
+            subjects_by_relation[relation] = [entities, weights / weights.sum()]
             entities, weights = np.unique(triples[:, 2], return_counts=True)
-            self.objects_by_relation[relation] = [entities, weights / weights.sum()]
+            objects_by_relation[relation] = [entities, weights / weights.sum()]
         # TODO: move loop into numpy for better performance, possibly by:
         # np.split(a[:, 0], np.cumsum(np.unique(a[:, 1], return_counts=True)[1])[:-1])
+        self.subjects_by_relation = np.array(list(subjects_by_relation.values()))
+        self.objects_by_relation = np.array(list(objects_by_relation.values()))
