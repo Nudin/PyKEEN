@@ -70,19 +70,21 @@ def _create_corrupted_triples(triple, all_entities, device):
 def _filter_corrupted_triples(
     corrupted_subject_based, corrupted_object_based, all_pos_triples
 ):
-    s = corrupted_object_based[0, 0].item()
-    p = corrupted_object_based[0, 1].item()
-    o = corrupted_object_based[0, 2].item()
-    pos_subj = all_pos_triples[
-        (all_pos_triples[:, 1] == p) & (all_pos_triples[:, 2] == o), 0
-    ]
-    mask = np.in1d(corrupted_subject_based[:, 0], pos_subj, invert=True)
+    s, p, _ = corrupted_object_based[0]
+    o = corrupted_subject_based[0, 2]
+    s_filter = all_pos_triples[:, 0] == s
+    p_filter = all_pos_triples[:, 1] == p
+    o_filter = all_pos_triples[:, 2] == o
+    pos_subj = all_pos_triples[p_filter & o_filter, 0]
+    mask = np.in1d(
+        corrupted_subject_based[:, 0], pos_subj, invert=True, assume_unique=True
+    )
     corrupted_subject_based = corrupted_subject_based[mask]
 
-    pos_obj = all_pos_triples[
-        (all_pos_triples[:, 1] == p) & (all_pos_triples[:, 0] == s), 2
-    ]
-    mask = np.in1d(corrupted_object_based[:, 2], pos_obj, invert=True)
+    pos_obj = all_pos_triples[p_filter & s_filter, 2]
+    mask = np.in1d(
+        corrupted_object_based[:, 2], pos_obj, invert=True, assume_unique=True
+    )
     corrupted_object_based = corrupted_object_based[mask]
 
     if len(corrupted_object_based) + len(corrupted_subject_based) == 0:
