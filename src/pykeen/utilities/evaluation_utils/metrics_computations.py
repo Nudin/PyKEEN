@@ -18,11 +18,6 @@ log = logging.getLogger(__name__)
 DEFAULT_HITS_AT_K = [1, 3, 5, 10]
 
 
-def _hash_triples(triples: Iterable[Hashable]) -> int:
-    """Hash a list of triples."""
-    return hash(tuple(triples))
-
-
 def update_hits_at_k(
     hits_at_k_values: Dict[int, List[float]],
     rank_of_positive_subject_based: int,
@@ -64,36 +59,33 @@ def _create_corrupted_triples(triple, all_entities, device):
     corrupted_subject_based = np.concatenate(
         [candidate_entities_subject_based, tuples_subject_based], axis=1
     )
-    corrupted_subject_based = torch.tensor(
-        corrupted_subject_based, dtype=torch.long, device=device
-    )
 
     corrupted_object_based = np.concatenate(
         [tuples_object_based, candidate_entities_object_based], axis=1
-    )
-    corrupted_object_based = torch.tensor(
-        corrupted_object_based, dtype=torch.long, device=device
     )
 
     return corrupted_subject_based, corrupted_object_based
 
 
 def _filter_corrupted_triples(
-    corrupted_subject_based, corrupted_object_based, all_pos_triples_hashed
+    corrupted_subject_based, corrupted_object_based, all_pos_triples
 ):
-    corrupted_subject_based_hashed = np.apply_along_axis(
-        _hash_triples, 1, corrupted_subject_based
-    )
-    mask = np.in1d(corrupted_subject_based_hashed, all_pos_triples_hashed, invert=True)
+    s = corrupted_object_based[0, 0].item()
+    p = corrupted_object_based[0, 1].item()
+    o = corrupted_object_based[0, 2].item()
+    pos_subj = all_pos_triples[
+        (all_pos_triples[:, 1] == p) & (all_pos_triples[:, 2] == o), 0
+    ]
+    mask = np.in1d(corrupted_subject_based[:, 0], pos_subj, invert=True)
     corrupted_subject_based = corrupted_subject_based[mask]
 
-    corrupted_object_based_hashed = np.apply_along_axis(
-        _hash_triples, 1, corrupted_object_based
-    )
-    mask = np.in1d(corrupted_object_based_hashed, all_pos_triples_hashed, invert=True)
+    pos_obj = all_pos_triples[
+        (all_pos_triples[:, 1] == p) & (all_pos_triples[:, 0] == s), 2
+    ]
+    mask = np.in1d(corrupted_object_based[:, 2], pos_obj, invert=True)
     corrupted_object_based = corrupted_object_based[mask]
 
-    if corrupted_object_based.size + corrupted_subject_based.size == 0:
+    if len(corrupted_object_based) + len(corrupted_subject_based) == 0:
         raise Exception(
             "User selected filtered metric computation, but all corrupted triples exists"
             "also as positive triples."
@@ -108,7 +100,7 @@ def _compute_filtered_rank(
     corrupted_subject_based,
     corrupted_object_based,
     device,
-    all_pos_triples_hashed,
+    all_pos_triples,
 ) -> Tuple[int, int]:
     """
 
@@ -117,12 +109,12 @@ def _compute_filtered_rank(
     :param corrupted_subject_based:
     :param corrupted_object_based:
     :param device:
-    :param all_pos_triples_hashed:
+    :param all_pos_triples:
     """
     corrupted_subject_based, corrupted_object_based = _filter_corrupted_triples(
         corrupted_subject_based=corrupted_subject_based,
         corrupted_object_based=corrupted_object_based,
-        all_pos_triples_hashed=all_pos_triples_hashed,
+        all_pos_triples=all_pos_triples,
     )
 
     return _compute_rank(
@@ -131,7 +123,7 @@ def _compute_filtered_rank(
         corrupted_subject_based=corrupted_subject_based,
         corrupted_object_based=corrupted_object_based,
         device=device,
-        all_pos_triples_hashed=all_pos_triples_hashed,
+        all_pos_triples=all_pos_triples,
     )
 
 
@@ -141,7 +133,7 @@ def _compute_rank(
     corrupted_subject_based,
     corrupted_object_based,
     device,
-    all_pos_triples_hashed=None,
+    all_pos_triples=None,
 ) -> Tuple[int, int]:
     """
 
@@ -150,8 +142,14 @@ def _compute_rank(
     :param corrupted_subject_based:
     :param corrupted_object_based:
     :param device:
-    :param all_pos_triples_hashed: This parameter isn't used but is necessary for compatability
+    :param all_pos_triples: This parameter isn't used but is necessary for compatability
     """
+    corrupted_subject_based = torch.tensor(
+        corrupted_subject_based, dtype=torch.long, device=device
+    )
+    corrupted_object_based = torch.tensor(
+        corrupted_object_based, dtype=torch.long, device=device
+    )
     scores_of_corrupted_subjects = kg_embedding_model.predict(corrupted_subject_based)
     scores_of_corrupted_objects = kg_embedding_model.predict(corrupted_object_based)
 
@@ -214,7 +212,6 @@ def compute_metric_results(
     all_pos_triples = np.concatenate(
         [mapped_train_triples, mapped_test_triples], axis=0
     )
-    all_pos_triples_hashed = np.apply_along_axis(_hash_triples, 1, all_pos_triples)
 
     compute_rank_fct: Callable[..., Tuple[int, int]] = (
         _compute_filtered_rank if filter_neg_triples else _compute_rank
@@ -235,7 +232,7 @@ def compute_metric_results(
             corrupted_subject_based=corrupted_subject_based,
             corrupted_object_based=corrupted_object_based,
             device=device,
-            all_pos_triples_hashed=all_pos_triples_hashed,
+            all_pos_triples=all_pos_triples,
         )
 
         ranks.append(rank_of_positive_subject_based)
