@@ -81,26 +81,23 @@ def _create_corrupted_triples(triple, all_entities, device):
 def _filter_corrupted_triples(
     corrupted_subject_based, corrupted_object_based, all_pos_triples_hashed
 ):
-    # TODO: Check
     corrupted_subject_based_hashed = np.apply_along_axis(
         _hash_triples, 1, corrupted_subject_based
     )
     mask = np.in1d(corrupted_subject_based_hashed, all_pos_triples_hashed, invert=True)
-    mask = np.where(mask)[0]
     corrupted_subject_based = corrupted_subject_based[mask]
 
     corrupted_object_based_hashed = np.apply_along_axis(
         _hash_triples, 1, corrupted_object_based
     )
     mask = np.in1d(corrupted_object_based_hashed, all_pos_triples_hashed, invert=True)
-    mask = np.where(mask)[0]
+    corrupted_object_based = corrupted_object_based[mask]
 
-    if mask.size == 0:
+    if corrupted_object_based.size + corrupted_subject_based.size == 0:
         raise Exception(
             "User selected filtered metric computation, but all corrupted triples exists"
             "also as positive triples."
         )
-    corrupted_object_based = corrupted_object_based[mask]
 
     return corrupted_subject_based, corrupted_object_based
 

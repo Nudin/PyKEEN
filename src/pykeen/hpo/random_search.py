@@ -108,8 +108,6 @@ class RandomSearch(HPOptimizer):
             entity_to_ids.append(entity_to_id)
             rel_to_ids.append(rel_to_id)
 
-            all_entities = np.array(list(entity_to_id.values()))
-
             batch_size = kge_model_config[pkc.BATCH_SIZE]
             num_epochs = kge_model_config[pkc.NUM_EPOCHS]
             learning_rate = kge_model_config[pkc.LEARNING_RATE]
