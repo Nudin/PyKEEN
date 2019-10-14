@@ -291,7 +291,9 @@ class BaseModule(nn.Module):
 
         loss_per_epoch = []
 
-        neg_sampler = NegativeSampler(self.neg_sampling, pos_triples, self.num_entities)
+        neg_sampler = NegativeSampler(
+            self.neg_sampling, pos_triples, self.num_entities, self.num_relations
+        )
 
         start_training = timeit.default_timer()
 

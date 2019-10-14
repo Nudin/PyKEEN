@@ -12,7 +12,7 @@ class NegativeSampler:
     numbered starting with 0.
     """
 
-    def __init__(self, strategy, pos_triples, num_entities):
+    def __init__(self, strategy, pos_triples, num_entities, num_relations):
         """
         Bind the chosen sampling strategy to .sample() and save the positive
         triples and the upper range of the entities
@@ -22,10 +22,10 @@ class NegativeSampler:
         if strategy == CORRUPTION:
             self.sample = self.random_corruption
         elif strategy == TYPEDCORRUPTION:
-            self.calc_entity_weights()
+            self.calc_entity_weights(num_relations)
             self.sample = self.typed_corruption
         elif strategy == WEIGHTED:
-            self.calc_entity_weights()
+            self.calc_entity_weights(num_relations)
             self.sample = self.weighted_corruption
         else:
             raise NotImplementedError(
@@ -170,22 +170,21 @@ class NegativeSampler:
             [subject_based_corrupted_triples, object_based_corrupted_triples], axis=0
         )
 
-    def calc_entity_weights(self):
+    def calc_entity_weights(self, num_relations):
         """
         Counts which entities are used how often with the different relations,
         stores the information in:
         self.subjects_by_relation: dict{relation, [list(entities), list(weigths)]}
         self.objects_by_relation: dict{relation, [list(entities), list (weigths)]}
         """
-        relations = self.pos_triples[:, 1:2]
-        subjects_by_relation = {}
-        objects_by_relation = {}
-        for relation in np.unique(relations):
+        subjects_by_relation = []
+        objects_by_relation = []
+        for relation in range(num_relations):
             triples = self.pos_triples[self.pos_triples[:, 1] == relation]
             entities, weights = np.unique(triples[:, 0], return_counts=True)
-            subjects_by_relation[relation] = [entities, weights / weights.sum()]
+            subjects_by_relation.append([entities, weights / weights.sum()])
             entities, weights = np.unique(triples[:, 2], return_counts=True)
-            objects_by_relation[relation] = [entities, weights / weights.sum()]
+            objects_by_relation.append([entities, weights / weights.sum()])
         # TODO: move loop into numpy for better performance, possibly by:
         # np.split(a[:, 0], np.cumsum(np.unique(a[:, 1], return_counts=True)[1])[:-1])
         self.subjects_by_relation = np.array(list(subjects_by_relation.values()))
